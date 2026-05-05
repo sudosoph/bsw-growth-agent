@@ -96,7 +96,7 @@ The agent learns voice from these. **Five minimum. More is better.** Add new one
 
 > **SUBJECT:** the n8n + Claude question
 >
-> Saw your comment in r/AI_Agents asking how to wire Claude into n8n. I ran a workshop on this exact stack at Boulder Startup Week — open-sourced the template at github.com/sudosoph/bsw-growth-agent.
+> Saw your comment in r/AI_Agents asking how to wire Claude into n8n. I ran a workshop on this exact stack at Boulder Startup Week — open-sourced the template at github.com/sudosoph/bsw26-agentic-workflows.
 >
 > Not selling anything. Happy to walk through it on a call if you want a faster start than reading the README.
 >

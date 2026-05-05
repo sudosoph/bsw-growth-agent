@@ -1,14 +1,14 @@
 # BSW Workshop · Complete Context Bundle
 
 > Single-file context dump for any AI assistant working on agenticarchitect.ai content.
-> Contains all public-facing materials from the BSW Growth Agent workshop.
 > Last bundled: 2026-05-05
-> Source repo: github.com/sudosoph/bsw-growth-agent
+> Source repo: github.com/sudosoph/bsw26-agentic-workflows
 
 ---
 
+
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION 1 · Site assistant guidance (read this first)
+## SECTION · GUIDE-CONTEXT.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Guide Context · for the agenticarchitect.ai site assistant
@@ -40,7 +40,7 @@ A customer-discovery agent that runs on a daily cron. Listens to Hacker News, Re
 
 **License:** MIT, fully open source.
 
-**Repo:** [github.com/sudosoph/bsw-growth-agent](https://github.com/sudosoph/bsw-growth-agent)
+**Repo:** [github.com/sudosoph/bsw26-agentic-workflows](https://github.com/sudosoph/bsw26-agentic-workflows)
 
 ---
 
@@ -267,13 +267,14 @@ If a reader asks something out of scope (e.g., a different framework, a differen
 
 ---
 
-*Guide context v1.0 · MIT licensed · part of github.com/sudosoph/bsw-growth-agent*
+*Guide context v1.0 · MIT licensed · part of github.com/sudosoph/bsw26-agentic-workflows*
 *Maintained by Sophia Stein · sophia@agenticarchitect.ai*
 
 ---
 
+
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION 2 · Repo README
+## SECTION · README.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # BSW Growth Agent
@@ -311,19 +312,34 @@ You can run this whole agent for **free** for 14 days, then either upgrade or mi
 **What you need:**
 - [n8n.cloud](https://n8n.cloud) free 14-day trial (no card)
 - [Groq](https://console.groq.com) free tier · Llama 3.3 70B (no card)
-- [Jina Reader](https://r.jina.ai) for web extraction (no signup needed at all — just hit `https://r.jina.ai/<URL>`)
+- [Jina Reader](https://r.jina.ai) for web extraction (no signup needed — just hit `https://r.jina.ai/<URL>`)
 - Your existing Google account (Sheets + Drive + Gmail)
 
 **Total cost:** $0 for the first 14 days. After the n8n.cloud trial: pay $24/mo, OR self-host n8n on a $5/mo Hetzner VPS, OR migrate to Make.com's free tier (1,000 ops/month).
 
-See **[CONFIGURATION.md → Recipe 1](./CONFIGURATION.md#recipe-1--zero-cost-demo-groq--jina)** for the exact swap-in steps. The Lite workflow lives at `n8n/bsw-growth-agent-lite.json` (coming · use the swap-ins from CONFIGURATION.md for now).
+**One-click free-tier workflow:** import [`n8n/bsw-growth-agent-lite.json`](./n8n/bsw-growth-agent-lite.json) directly into n8n.cloud · all Anthropic + Firecrawl nodes are pre-swapped to Groq + Jina. Same architecture, $0 stack.
+
+### ⚡ Autopilot setup with a browser agent (~10 min hands-off)
+
+If you have **Claude for Chrome** (Max/Pro subscribers · [claude.com/chrome](https://claude.com/chrome)) or **Gemini in Chrome** or **OpenAI Operator**, an AI browser agent can do the entire signup-and-key-copy phase for you while you make coffee. Paste prompt in [TUTORIAL.md → Autopilot section](./TUTORIAL.md#-autopilot--let-an-ai-browser-agent-do-the-setup-for-you-10-min-hands-off).
+
+### 🧪 Verify your keys before wiring (60-second smoke test)
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-... \
+FIRECRAWL_API_KEY=fc-...    \
+GROQ_API_KEY=gsk_...        \
+./scripts/test-credentials.sh
+```
+
+Catches typos and auth issues before you waste time wiring n8n.
 
 ### 💎 Paid path · best quality · Tier 1
 
 If you want best-in-class voice match (Anthropic Sonnet 4.6) and don't mind ~$15–$135/mo:
 
 ```bash
-gh repo fork sudosoph/bsw-growth-agent --clone
+gh repo fork sudosoph/bsw26-agentic-workflows --clone
 cd bsw-growth-agent
 ```
 
@@ -495,8 +511,9 @@ You can fork, modify, sell, or rebrand this freely. **The only ask:** if you shi
 
 ---
 
+
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION 3 · The 17-step tutorial
+## SECTION · TUTORIAL.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Build the Founder's Discovery Engine
@@ -508,7 +525,7 @@ You can fork, modify, sell, or rebrand this freely. **The only ask:** if you shi
 **Time:** 20 minutes live demo · 45–60 minutes self-paced if new to n8n.
 **License:** MIT — fork freely, ship yours.
 
-**Repo:** [github.com/sudosoph/bsw-growth-agent](https://github.com/sudosoph/bsw-growth-agent)
+**Repo:** [github.com/sudosoph/bsw26-agentic-workflows](https://github.com/sudosoph/bsw26-agentic-workflows)
 **Workshop:** Boulder Startup Week 2026 · Sophia Stein · [agenticarchitect.ai/blog](https://agenticarchitect.ai/blog)
 
 ---
@@ -538,6 +555,34 @@ Before you start, you need 5 accounts. Free tiers cover everything.
 | **GitHub** | Repo to fork | [github.com](https://github.com) | Free |
 
 **Optional:** `cal.com` for the Office Hours calendar link (free tier).
+
+---
+
+## ⚡ Autopilot · let an AI browser agent do the setup for you (~10 min hands-off)
+
+If you have **Claude for Chrome** (Max/Pro subscribers · [claude.com/chrome](https://claude.com/chrome)) or **Gemini in Chrome** (built into Chrome 127+) or **OpenAI Operator**, the entire setup phase can run autonomously while you make coffee.
+
+**Paste this into the agent:**
+
+> *"Set up the BSW Growth Agent demo. Walk through these tasks in order. Pause for me only when you need me to enter a password, accept an OAuth consent screen, or confirm payment.*
+>
+> *1. Sign me in to console.anthropic.com · create a new API key called `bsw-growth-agent` · copy it to my clipboard · note: I'll add billing manually later.*
+>
+> *2. Sign me in to firecrawl.dev · go to Dashboard → API Keys · copy the free-tier key · I shouldn't need a credit card for the trial.*
+>
+> *3. Sign me in to console.groq.com · create an API key for the free tier called `bsw-growth-agent` · copy it.*
+>
+> *4. Open n8n.cloud · sign in or start the 14-day trial · create a new workflow called `BSW Growth Agent` · then go to Workflows → Add → Import from File · I'll provide the JSON path.*
+>
+> *5. Open Google Sheets · create a new sheet called `Discovery Engine` with three tabs named ICP, Sent, and Runs · paste the headers from `handouts/google-sheet-seed.csv` from the BSW repo into each tab.*
+>
+> *6. Open Google Drive · create a folder called `agentic-architect` · inside it, create a Google Doc named `voice.md` and paste the contents of `handouts/voice-md-template.md` from the BSW repo (which I'll customize after).*
+>
+> *7. When done, give me back: the Anthropic key, the Firecrawl key, the Groq key, the Sheet ID (from the URL), and the voice.md file ID. I'll wire these into n8n manually."*
+
+The agent handles signups + form fills + key copy. **You only intervene at OAuth consent screens and payment forms** — typically 2 minutes of your real time across the whole 10-minute autopilot run.
+
+**Cannot autopilot via Claude Code CLI / shell-only AI.** Browser interaction needs a browser-controlling agent. If you don't have one, follow the manual steps below — they take ~30 minutes.
 
 ---
 
@@ -590,7 +635,7 @@ Two options:
 **Option A — fork the repo (fastest)**
 ```bash
 # In your terminal
-gh repo fork sudosoph/bsw-growth-agent --clone
+gh repo fork sudosoph/bsw26-agentic-workflows --clone
 cd bsw-growth-agent
 ```
 
@@ -1032,7 +1077,7 @@ Fork the repo, change the trigger, change `icp.md` and `voice.md`, ship. **Same 
 
 ## Resources
 
-- **Repo:** [github.com/sudosoph/bsw-growth-agent](https://github.com/sudosoph/bsw-growth-agent)
+- **Repo:** [github.com/sudosoph/bsw26-agentic-workflows](https://github.com/sudosoph/bsw26-agentic-workflows)
 - **Workflow JSON:** `n8n/bsw-growth-agent.json`
 - **voice.md template:** `handouts/voice-md-template.md`
 - **ICP template:** `handouts/icp-md-template.md`
@@ -1052,8 +1097,9 @@ Fork the repo, change the trigger, change `icp.md` and `voice.md`, ship. **Same 
 
 ---
 
+
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION 4 · Configuration · provider swap-in recipes
+## SECTION · CONFIGURATION.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Configuration · how to swap providers
@@ -1318,55 +1364,300 @@ Only the *vendor* of each step changes. **Patterns don't change. Tools do.**
 
 ---
 
+
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION 5 · Sophia's voice file template
+## SECTION · AUTOPILOT.md
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Claude for Chrome · Autopilot Setup Script
+## Hands-off setup for the BSW Growth Agent demo
+
+> Paste the prompt below into Claude for Chrome (claude.com/chrome). Stay nearby — you'll need to enter passwords, accept OAuth consent screens, and click through 2FA when it pauses. Total time: ~10 minutes hands-on, ~5 minutes total of *your* attention.
+
+---
+
+## Pre-flight (1 minute · do this first manually)
+
+1. Make sure you're signed into Chrome with your `sophia@agenticarchitect.ai` Google account
+2. Open this file in a tab so Claude for Chrome can read the prompt
+3. Have your phone ready for 2FA codes
+4. Open `/home/sophia-stein/bsw/handouts/voice-md-template.md` and `/home/sophia-stein/bsw/handouts/icp-md-template.md` — Claude for Chrome will copy from these into Google Drive
+
+---
+
+## The autopilot prompt · copy everything between the `===` lines
+
+```
+=== AUTOPILOT PROMPT FOR CLAUDE FOR CHROME · BEGIN ===
+
+You are setting up the BSW Growth Agent demo for Sophia Stein, who is presenting at Boulder Startup Week 2026 on Thursday May 7. We are using the FREE-TIER path: Groq for the LLM (no credit card needed), Jina Reader for web extraction (no signup at all), n8n.cloud for the workflow runtime (14-day free trial). Walk through these tasks in order. Pause for me only when you need me to enter a password, accept an OAuth consent screen, accept a Terms of Service, or enter a 2FA code. Otherwise proceed autonomously.
+
+CRITICAL: every API key or important value you copy, paste it into a new tab as plain text in this format:
+
+  ANTHROPIC_API_KEY=sk-ant-...  (or skip)
+  GROQ_API_KEY=gsk_...
+  FIRECRAWL_API_KEY=fc-...      (optional · free tier)
+  N8N_INSTANCE_URL=https://...n8n.cloud
+  GOOGLE_SHEET_ID=1AbC...XyZ
+  VOICE_MD_FILE_ID=...
+  ICP_MD_FILE_ID=...
+
+I'll copy them from that tab into n8n manually after you finish. Do NOT paste them into chat or email — keep them in the temp tab only.
+
+═══════════════════════════════════════════════════
+TASK 1 · GROQ FREE TIER (LLM provider)
+═══════════════════════════════════════════════════
+
+Open https://console.groq.com in a new tab.
+- If sign-in needed, use my sophia@agenticarchitect.ai Google account.
+- Once signed in, navigate to API Keys.
+- Create a new API key named "bsw-growth-agent".
+- Copy the key (starts with "gsk_") to the temp credentials tab.
+- Confirm: Groq's free tier should not ask for a credit card. If it does, pause and tell me — we may need to use a different provider.
+
+═══════════════════════════════════════════════════
+TASK 2 · n8n.CLOUD (workflow runtime)
+═══════════════════════════════════════════════════
+
+Open https://n8n.cloud in a new tab.
+- Sign up for the 14-day free trial (no credit card required).
+- Use my sophia@agenticarchitect.ai Google account if SSO is offered.
+- Once inside, note the workflow URL (will look like https://[name].app.n8n.cloud) and add it to the temp credentials tab.
+- DO NOT import the workflow yet · we'll do that after creating the Google assets so we can paste IDs in.
+
+═══════════════════════════════════════════════════
+TASK 3 · GOOGLE SHEET (config storage)
+═══════════════════════════════════════════════════
+
+Open https://docs.google.com/spreadsheets/u/0/create in a new tab.
+
+Rename the spreadsheet to: BSW Discovery Engine
+
+Create three tabs by right-clicking the bottom tab area · Add Sheet:
+  Tab 1: ICP
+  Tab 2: Sent
+  Tab 3: Runs
+
+Tab 1 (ICP) · Row 1 headers:
+  A1: icp_description
+  B1: signal_keywords
+
+Tab 1 (ICP) · Row 2 content (paste exactly):
+  A2: Early-stage SaaS founders pre-PMF or just-past-PMF · technical-leaning · running outbound or research themselves · paying for Lindy/Zapier/Clay or hiring SDRs · usually Boulder/Denver/Bay Area but geography is not a hard filter
+  B2: n8n cost,Lindy credits surprise,hired SDR,replaced our outbound team,Sonnet 4.6 cost,Apollo.io alternative,Smartlead vs Instantly,Clay too expensive,founder-led sales,prospecting for hours,Anthropic bill,running out of credits,n8n self-host,Make.com pricing,LangGraph too complex,agent that drafts emails
+
+Tab 2 (Sent) · Row 1 headers:
+  A1: date
+  B1: person
+  C1: signal_type
+  D1: source_url
+  E1: score
+  F1: draft_subject
+  G1: status
+
+(Tab 2 stays empty under headers · agent will append rows.)
+
+Tab 3 (Runs) · Row 1 headers:
+  A1: date
+  B1: leads_found
+  C1: qualified
+  D1: drafts
+  E1: errors
+  F1: notes
+
+(Tab 3 stays empty under headers · agent will append rows.)
+
+Once done, copy the spreadsheet ID from the URL (the long string between /d/ and /edit) into the temp credentials tab.
+
+═══════════════════════════════════════════════════
+TASK 4 · GOOGLE DRIVE FOLDER + voice.md
+═══════════════════════════════════════════════════
+
+Open https://drive.google.com in a new tab.
+- Create a new folder called "agentic-architect" (root of My Drive).
+- Inside that folder, create a new Google Doc called "voice.md"
+- Open the local file at /home/sophia-stein/bsw/handouts/voice-md-template.md and copy its entire contents into the voice.md Google Doc you just created.
+- Right-click voice.md → Share → Get link → copy. Extract the file ID (between /d/ and /view) and add to the temp credentials tab.
+
+═══════════════════════════════════════════════════
+TASK 5 · GOOGLE DRIVE icp.md
+═══════════════════════════════════════════════════
+
+In the same agentic-architect/ folder, create another Google Doc called "icp.md"
+- Open the local file at /home/sophia-stein/bsw/handouts/icp-md-template.md and copy its entire contents into the icp.md Google Doc.
+- Copy the file ID and add to the temp credentials tab.
+
+═══════════════════════════════════════════════════
+TASK 6 · IMPORT n8n WORKFLOW
+═══════════════════════════════════════════════════
+
+Return to your n8n.cloud tab.
+- Click Workflows → Add → Import from File.
+- Upload /home/sophia-stein/bsw/n8n/bsw-growth-agent-lite.json (the FREE-tier version using Groq + Jina).
+- After import, click into each node and replace placeholder credentials:
+  - REPLACE_GROQ_HEADER_AUTH → create new HTTP Header Auth credential, name "Groq API · Authorization Bearer", header name "Authorization", value "Bearer YOUR_GROQ_KEY"
+  - REPLACE_GOOGLE_SHEETS_CRED → click Connect new credential → OAuth2 → sign in with sophia@agenticarchitect.ai · grant Sheets read+write access · pause for me to consent.
+  - REPLACE_GOOGLE_DRIVE_CRED → similar OAuth2 flow for Drive (read-only) · pause for me to consent.
+  - REPLACE_GMAIL_CRED → similar OAuth2 flow for Gmail (compose + send scopes) · pause for me to consent.
+- Replace placeholder IDs in the workflow:
+  - REPLACE_WITH_YOUR_SHEET_ID → use the Sheet ID from temp tab (4 spots in workflow)
+  - REPLACE_WITH_VOICE_MD_FILE_ID → voice.md file ID from temp tab
+  - REPLACE_WITH_YOUR_EMAIL@example.com → sophia@agenticarchitect.ai (digest recipient, 1 spot)
+
+═══════════════════════════════════════════════════
+TASK 7 · TEST RUN
+═══════════════════════════════════════════════════
+
+In n8n, click the Manual Trigger node → Execute Workflow.
+
+Watch the execution flow through all nodes. Each node should turn green. If any turns red, tell me what error it shows.
+
+After the workflow finishes:
+- Open Gmail in a new tab → check Drafts folder. There should be ~5 fresh drafts.
+- Open the BSW Discovery Engine sheet → Runs tab. Should have 1 new row.
+- Open the same sheet → Sent tab. Should have ~5 new rows.
+
+═══════════════════════════════════════════════════
+TASK 8 · HANDOFF
+═══════════════════════════════════════════════════
+
+When done, give me a summary in chat with:
+1. A confirmation that drafts appeared in Gmail (with one example subject line so I know voice match worked)
+2. The total time elapsed
+3. Any errors you saw and how you handled them
+4. The temp credentials tab URL so I can verify nothing leaked
+
+Then close all tabs except n8n and Gmail Drafts. Leave those open for me.
+
+=== AUTOPILOT PROMPT FOR CLAUDE FOR CHROME · END ===
+```
+
+---
+
+## What you need to be ready to do (when Claude for Chrome pauses)
+
+| Pause type | What you do | Time |
+|---|---|---|
+| Google sign-in | Enter your Google password + 2FA code | 30 sec |
+| Groq sign-up confirmation | Click "I agree" on Terms of Service | 5 sec |
+| n8n.cloud sign-up | Click "Start Free Trial" + accept TOS | 10 sec |
+| Google OAuth consent (3 times: Sheets, Drive, Gmail) | Click "Allow" on the OAuth consent screen | 5 sec each |
+| Groq billing prompt | Should NOT appear · if it does, tell agent to skip | n/a |
+
+**Total interactive time:** ~2 minutes across the whole 10-minute autopilot run.
+
+---
+
+## After Claude for Chrome finishes · verify everything works
+
+```bash
+# Run the credential smoke test from your terminal
+cd /home/sophia-stein/bsw
+GROQ_API_KEY=gsk_yourkeyhere ./scripts/test-credentials.sh
+```
+
+Should print four green checkmarks (Anthropic skip is fine if you didn't get an Anthropic key — we're free tier).
+
+Then in n8n, run the **Manual Trigger** once more yourself. You should see:
+- ✅ All nodes turn green
+- ✅ 5 drafts in your Gmail Drafts folder
+- ✅ 5 rows added to the `Sent` tab in the spreadsheet
+- ✅ 1 row added to the `Runs` tab
+
+If any of these are missing, the most common culprit is one of the placeholder IDs not getting replaced. Open the n8n workflow and grep for `REPLACE_` — there should be no results.
+
+---
+
+## Activate the cron for tomorrow morning
+
+Once the manual run works:
+1. Open the workflow in n8n
+2. Click the **Active** toggle (top right)
+3. The agent will fire daily at 7 AM your time
+
+Tomorrow morning before the workshop, check your inbox. If 5 drafts arrived overnight, you're shipped. If not, debug Wednesday morning.
+
+---
+
+## Backup plan if Claude for Chrome stalls
+
+If Claude for Chrome gets stuck on a step, you can:
+1. Tell it to skip that step and continue
+2. Do that step manually using the existing `TUTORIAL.md`
+3. Then re-prompt: "Resume from Task X"
+
+The 17-step manual TUTORIAL.md covers everything Claude for Chrome would have done.
+
+---
+
+## What this saves you
+
+| Without autopilot | With Claude for Chrome |
+|---|---|
+| 30 min interactive setup | ~2 min interactive · ~10 min wall-clock |
+| 10+ context switches | Zero context switches |
+| Easy to miss a step | Agent cross-references against this script |
+| ~$0 cost | ~$0 cost · same credentials used |
+
+---
+
+*Autopilot script v1 · for the BSW Growth Agent free-tier path · MIT licensed*
+*— Sophia Stein · agenticarchitect.ai/blog · sophia@agenticarchitect.ai*
+
+---
+
+
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## SECTION · handouts/voice-md-template.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Sophia's voice — for outbound writing
 
-> Drop this file in Google Drive. The n8n workflow reads it on every run and passes it as cached system prompt context to the Sonnet 4.6 drafting node. Edit the file, agent inherits the change next run. Config-as-files in action.
+> The agent reads this file as system prompt context on every run. Edit it directly · the agent inherits the change next run. Five example emails do more work than any prompt instruction · keep them updated as your style evolves.
 
 ---
 
 ## Posture
 
-- Direct, no fluff. Short sentences. Cut adverbs.
+- Direct. No fluff. Short sentences. Cut adverbs.
 - Specific over abstract. Numbers over adjectives.
-- Confident but not arrogant. Assume the reader is smart.
+- Confident but not arrogant. I assume the reader is smart.
+- Skeptical of hype. Honest about tradeoffs.
 - I diagnose, then offer. I don't sell.
-- I never use exclamation marks unless someone is bleeding.
+- I don't use exclamation marks unless something is genuinely urgent.
+- I almost never start sentences with "I" unless the sentence is about me.
 
-## Words I use
+## Words I actually use
 
-"architecture" · "compounding" · "leverage" · "stack" · "the math here is" · "what's interesting" · "the wrong question" · "tradeoff" · "the moat is" · "honest take" · "skeptical of" · "earned"
+"the math here is" · "compounding" · "leverage" · "stack" · "tradeoff" · "primitives" · "honest take" · "what's interesting" · "the wrong question" · "earned" · "compounds" · "skeptical of" · "concrete" · "info dense" · "actionable" · "context"
 
 ## Words I never use
 
-"synergy" · "unlock" · "revolutionary" · "game-changer" · "leverage AI" (overused) · "in today's world" · "I hope this finds you well" · "ecosystem" · "10x" (cliché) · "thought leader" · "circle back" · "touch base"
+"synergy" · "unlock" (verb) · "revolutionary" · "game-changer" · "leverage AI" (overused) · "circle back" · "touch base" · "reach out" · "ecosystem" · "cutting-edge" · "in today's world" · "I hope this finds you well" · "thought leader" · "10x" as a noun · "AI-powered" · "next-generation"
 
-## Cold email structure (5 steps · 80–110 words total)
+## Email structure for cold outreach (5 steps · 80–110 words total)
 
-1. **One-line context** — how I found you. Be specific. *"Saw your post on r/SaaS last Thursday about ..."* — not *"I came across your work."*
-2. **Two-line observation** — something specific about their situation. The thing they'd nod at if I said it out loud.
-3. **One question** — the question I'd ask if we were sitting at a coffee shop. Not a sales question. A learning question.
-4. **One sentence on what I do** — short, no jargon. *"I architect agentic systems for early-stage founders."*
-5. **Soft CTA** — *"Worth 15 minutes Thursday?"* — never *"let's hop on"* or *"jump on a quick call"*.
+1. **One-line context** · how I found them. Specific · not "I came across your work."
+2. **Two-line observation** · something specific they'd nod at if I said it out loud.
+3. **One question** · the question I'd ask if we were sitting at a coffee shop. A learning question, not a sales question.
+4. **One sentence on what I do** · short, no jargon.
+5. **Soft CTA** · "Worth 15 minutes Thursday?" · never "let's hop on" or "jump on a quick call."
 
 ## Subject line rules
 
 - Lowercase first letter unless proper noun
-- ≤ 50 chars
+- ≤ 50 characters
 - Reference the specific thing — *"re: your Lindy thread"*, not *"connecting"* or *"quick question"*
-- No emoji
-- No clickbait (*"this might surprise you"*, *"the truth about ..."*)
+- No emoji, no all caps, no clickbait
+- If it sounds like marketing, rewrite it
 
 ---
 
-## Examples (this is where the work happens)
+## Examples · this is where the work happens
 
-The drafting agent learns voice from these examples. **More examples = better voice.** Aim for 5–7. Add new ones whenever you write an email you're proud of.
+The agent learns voice from these. **Five minimum. More is better.** Add new ones whenever I write an email I'm proud of.
 
-### Example 1 — to a founder ranting about Lindy on Twitter
+### Example 1 · to a founder ranting about Lindy credits on X
 
 > **SUBJECT:** re: your Lindy thread
 >
@@ -1378,11 +1669,11 @@ The drafting agent learns voice from these examples. **More examples = better vo
 >
 > — Sophia
 
-### Example 2 — to someone hiring a "Head of Automation"
+### Example 2 · to someone hiring a "Head of Automation" or "Automation Engineer"
 
-> **SUBJECT:** the JD I keep seeing
+> **SUBJECT:** the automation eng JD
 >
-> Spotted your "Head of Automation" listing on Wellfound. Three of my recent founder clients posted near-identical roles before deciding the work could be done by an agent stack and a part-time analyst.
+> Spotted your "Head of Automation" listing on Wellfound. Three of my recent founder clients posted near-identical roles before realizing the work could be done by an agent stack and a part-time analyst.
 >
 > Not pitching — genuinely curious how you've scoped the role. If the answer is "we tried agents and it didn't work," I'd love to hear what broke.
 >
@@ -1390,37 +1681,49 @@ The drafting agent learns voice from these examples. **More examples = better vo
 >
 > — Sophia
 
-### Example 3 — to a founder complaining about competitor pricing on HN
+### Example 3 · to a founder complaining about Anthropic / OpenAI costs on HN
 
-> **SUBJECT:** the Notion price thing
+> **SUBJECT:** re: your HN comment on Sonnet costs
 >
-> Read your HN comment about Notion's $20 per-seat tier today. The math when you scale past 10 people is exactly what's pushing my clients to self-hosted alternatives.
+> Read your comment yesterday about your Sonnet bill. The cascade pattern — Haiku for routing, Sonnet only for nuance — cuts that 60–70% with no quality loss. It's the most underused 2026 cost lever I see.
 >
-> I architect agentic workflows for lean teams — most of my templates run on n8n + Sonnet for under $50/mo. Happy to share the cost breakdown if useful.
+> Happy to share the cost breakdown from a workflow that does the same thing for $6/month if useful.
 >
-> Worth a 15-min call Thursday?
+> Worth 15 minutes Thursday?
 >
 > — Sophia
 
-### Example 4 — to a Product Hunt launch
+### Example 4 · to a Product Hunt launcher with "agent" or "AI-native" in the description
 
 > **SUBJECT:** congrats on the PH launch
 >
 > Saw the launch this morning. The pricing-page math actually checks out, which is rarer than it should be.
 >
-> Quick question — when you said "agent-native" in the description, did you mean MCP under the hood or a custom protocol? I'm building a piece on agentic infrastructure choices for lean startups and your answer would help me think through the tradeoff.
+> Quick question — when you said "agent-native" in the description, did you mean MCP under the hood or a custom protocol? I'm writing about agentic infrastructure choices for lean startups and your answer would help me think through the tradeoff.
 >
-> Worth a 15-min call?
+> Worth 15 minutes?
 >
 > — Sophia
 
-### Example 5 — to someone asking for a "n8n + Claude" tutorial in a Reddit comment
+### Example 5 · to someone in r/AI_Agents or r/SaaS asking for n8n + Claude help
 
 > **SUBJECT:** the n8n + Claude question
 >
-> Saw your comment in r/AI_Agents asking how to wire Claude into n8n. I gave a workshop on this exact stack at Boulder Startup Week last week — open-sourced the template at github.com/sudosoph/bsw-growth-agent.
+> Saw your comment in r/AI_Agents asking how to wire Claude into n8n. I ran a workshop on this exact stack at Boulder Startup Week — open-sourced the template at github.com/sudosoph/bsw26-agentic-workflows.
 >
-> Not selling anything — happy to walk through it on a call if you want a faster start than reading the README.
+> Not selling anything. Happy to walk through it on a call if you want a faster start than reading the README.
+>
+> Worth 15 minutes Thursday?
+>
+> — Sophia
+
+### Example 6 · to a churned customer of a competitor (Trustpilot or Reddit complaint)
+
+> **SUBJECT:** the [competitor] situation
+>
+> Read your post about leaving [competitor] last week. The reason you gave — [specific quote from their post] — is exactly the architecture problem I help founders avoid.
+>
+> Not trying to sell you the next thing. Just curious whether you're rebuilding from scratch or migrating to something specific. If it's the second, the trap I see most often is [specific tradeoff in their next-tool category].
 >
 > Worth 15 minutes Thursday?
 >
@@ -1428,25 +1731,38 @@ The drafting agent learns voice from these examples. **More examples = better vo
 
 ---
 
-## Anti-patterns (what the agent should NEVER produce)
+## Anti-patterns · the agent should NEVER produce these
 
 - Three-paragraph emails
 - Sentences longer than 25 words
-- "I'd love to" / "I'd be happy to" — both are filler
+- "I'd love to" / "I'd be happy to" / "I'd be delighted to" — all filler
 - Compliments about their work that aren't specific
-- Asking to "pick their brain"
-- "Quick question" subject lines
+- "Pick your brain" or "tap your expertise"
+- Subject lines that say "Quick question" with no actual question reference
+- Anything with the word "synergy"
 - Anything that sounds like a marketing automation
-- Anything that mentions "synergy"
+- Sentences starting with "Hope your week is going well"
+- Emojis (unless I add them deliberately, which I rarely do)
+- Compound sales language: "Helps founders unlock new growth potential through AI-powered automation"
 
 ---
 
-*Voice file by Sophia Stein · agenticarchitect.ai/blog · MIT licensed in github.com/sudosoph/bsw-growth-agent*
+## When in doubt
+
+- If the email could be sent by any AI tool to any reader, it's wrong.
+- If the email reads like LinkedIn copy, it's wrong.
+- If it's longer than what I'd write at 9pm on a Tuesday, it's wrong.
+- If a friend would say "did Sophia write this or her assistant?", and the answer is "her assistant," it's wrong.
 
 ---
+
+*Voice file by Sophia Stein · sophia@agenticarchitect.ai · agenticarchitect.ai/blog · MIT licensed*
+
+---
+
 
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION 6 · ICP template
+## SECTION · handouts/icp-md-template.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # ICP — Ideal Customer Profile
@@ -1524,8 +1840,9 @@ See `do-not-contact.csv` in the same Drive folder. Updated continuously. Include
 
 ---
 
+
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION 7 · Agent JSON schemas
+## SECTION · handouts/schemas-md-template.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Agent Schemas — JSON output shapes
@@ -1657,12 +1974,13 @@ This is your trust-building primitive. After 14 consecutive runs with high appro
 
 ---
 
-*Schemas file · part of github.com/sudosoph/bsw-growth-agent · MIT licensed*
+*Schemas file · part of github.com/sudosoph/bsw26-agentic-workflows · MIT licensed*
 
 ---
 
+
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION 8 · 20/80 Worksheet
+## SECTION · handouts/20-80-worksheet.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # The 20/80 Worksheet
@@ -1670,7 +1988,7 @@ This is your trust-building primitive. After 14 consecutive runs with high appro
 
 **Workshop:** Architecting Agentic Workflows for the Lean 2026 Startup
 **Speaker:** Sophia Stein · AI Architect
-**Resources:** agenticarchitect.ai/blog · github.com/sudosoph/bsw-growth-agent
+**Resources:** agenticarchitect.ai/blog · github.com/sudosoph/bsw26-agentic-workflows
 
 ---
 
@@ -1781,7 +2099,7 @@ ________________________________________________________________
 - ☐ Write your `voice.md` and `icp.md` files (start with the templates from the repo)
 
 **This weekend:**
-- ☐ Fork github.com/sudosoph/bsw-growth-agent
+- ☐ Fork github.com/sudosoph/bsw26-agentic-workflows
 - ☐ Import the n8n JSON
 - ☐ Wire up your credentials
 - ☐ Do 3 dry runs
@@ -1804,8 +2122,9 @@ ________________________________________________________________
 
 ---
 
+
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION 9 · OSS Growth Playbook
+## SECTION · handouts/oss-growth-playbook.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # The OSS Growth Playbook
@@ -1902,10 +2221,10 @@ The Discovery Engine you got from this workshop is option C, ready-made. Fork it
 
 ## Resources
 
-- **The repo:** github.com/sudosoph/bsw-growth-agent (MIT licensed)
+- **The repo:** github.com/sudosoph/bsw26-agentic-workflows (MIT licensed)
 - **The blog:** agenticarchitect.ai/blog (weekly deep-dives)
 - **Architecture audits:** 5 free for BSW attendees · QR on closing slide
-- **Boulder community:** AI Tinkerers Denver · Boulder AI Builders · Rocky Mountain AI Interest Group · Silicon Flatirons (CU Boulder)
+- **Boulder community:** Boulder AI Builders Meetup · Rocky Mountain AI Interest Group (RMAIIG) · Silicon Flatirons (CU Boulder)
 
 ---
 
@@ -1913,8 +2232,9 @@ The Discovery Engine you got from this workshop is option C, ready-made. Fork it
 
 ---
 
+
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION 10 · Resources / landing copy
+## SECTION · resources-landing.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Welcome — you were at the BSW workshop.
@@ -1931,7 +2251,7 @@ The Discovery Engine you got from this workshop is option C, ready-made. Fork it
 
 Everything you need to fork the agent we built live.
 
-- 📦 **Repo (MIT licensed):** [github.com/sudosoph/bsw-growth-agent](https://github.com/sudosoph/bsw-growth-agent)
+- 📦 **Repo (MIT licensed):** [github.com/sudosoph/bsw26-agentic-workflows](https://github.com/sudosoph/bsw26-agentic-workflows)
 - 🔧 **n8n workflow JSON** — `n8n/bsw-growth-agent.json` (importable)
 - 📋 **Setup README** — 30-min start-to-running guide
 - 📝 **Sample voice.md** — your brand voice file template
@@ -1974,10 +2294,9 @@ Free for BSW attendees. Yes, I will write about whatever questions you DM me fro
 
 ## Boulder community — bring an agent next month
 
-- 🏗 **AI Tinkerers Denver** — monthly demos · [aitinkerers.org](https://aitinkerers.org/p/denver)
-- 🏔 **Boulder AI Builders** — alternates Boulder/Denver · 3,000+ members
-- ⛰ **Rocky Mountain AI Interest Group** — 200+ attendee meetups
-- 🎓 **Silicon Flatirons** (CU Boulder) — annual AI conference + research
+- 🏔 **Boulder AI Builders Meetup** — monthly · 3,000+ members in Boulder
+- ⛰ **Rocky Mountain AI Interest Group (RMAIIG)** — 200+ attendee meetups
+- 🎓 **Silicon Flatirons** (CU Boulder) — annual AI conference + research + working groups
 
 ---
 
@@ -2045,9 +2364,8 @@ Boulder-based. Available for short consults.
 
 ---
 
-*Resources page · part of github.com/sudosoph/bsw-growth-agent · MIT licensed*
+*Resources page · part of github.com/sudosoph/bsw26-agentic-workflows · MIT licensed*
 *— Sophia Stein · AI Architect*
 
 ---
 
-*End of bundle · 83141 ·  github.com/sudosoph/bsw-growth-agent · MIT*

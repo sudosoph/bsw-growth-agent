@@ -60,7 +60,7 @@ Catches typos and auth issues before you waste time wiring n8n.
 If you want best-in-class voice match (Anthropic Sonnet 4.6) and don't mind ~$15–$135/mo:
 
 ```bash
-gh repo fork sudosoph/bsw-growth-agent --clone
+gh repo fork sudosoph/bsw26-agentic-workflows --clone
 cd bsw-growth-agent
 ```
 

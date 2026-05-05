@@ -12,7 +12,7 @@
 
 Everything you need to fork the agent we built live.
 
-- 📦 **Repo (MIT licensed):** [github.com/sudosoph/bsw-growth-agent](https://github.com/sudosoph/bsw-growth-agent)
+- 📦 **Repo (MIT licensed):** [github.com/sudosoph/bsw26-agentic-workflows](https://github.com/sudosoph/bsw26-agentic-workflows)
 - 🔧 **n8n workflow JSON** — `n8n/bsw-growth-agent.json` (importable)
 - 📋 **Setup README** — 30-min start-to-running guide
 - 📝 **Sample voice.md** — your brand voice file template
@@ -125,5 +125,5 @@ Boulder-based. Available for short consults.
 
 ---
 
-*Resources page · part of github.com/sudosoph/bsw-growth-agent · MIT licensed*
+*Resources page · part of github.com/sudosoph/bsw26-agentic-workflows · MIT licensed*
 *— Sophia Stein · AI Architect*

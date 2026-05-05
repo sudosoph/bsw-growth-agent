@@ -40,7 +40,7 @@
 - [ ] **Firecrawl trial** — firecrawl.dev → free tier is 500 credits, plenty for the demo
 - [ ] **n8n.cloud trial** — n8n.io/cloud (or self-host via `docker run -it --rm -p 5678:5678 n8nio/n8n` on a $5 Hetzner VPS)
 - [ ] **Google Workspace** — your existing personal Gmail
-- [ ] **GitHub repo** — create `sudosoph/bsw-growth-agent` · MIT license · push the n8n JSON + handouts
+- [ ] **GitHub repo** — create `sudosoph/bsw26-agentic-workflows` · MIT license · push the n8n JSON + handouts
 
 ### Google Drive folder structure
 
@@ -187,7 +187,7 @@ Record this Tuesday or Wednesday before the talk:
 ### Within 24 hours
 
 - [ ] Tweet the GitHub repo link with #BSW2026 hashtag · tag @boulderstartupweek
-- [ ] Push a commit to `sudosoph/bsw-growth-agent` with the workshop date in the README ("v1.0.0 — shipped at BSW 2026")
+- [ ] Push a commit to `sudosoph/bsw26-agentic-workflows` with the workshop date in the README ("v1.0.0 — shipped at BSW 2026")
 - [ ] Write the workshop recap blog post for agenticarchitect.ai/blog
 - [ ] Email anyone who DM'd you during the talk
 
@@ -216,7 +216,7 @@ Record this Tuesday or Wednesday before the talk:
 
 - **Agentic Architect Blog:** agenticarchitect.ai/blog
 - **Office Hours:** Cal.com link in resources-landing.md
-- **GitHub:** github.com/sudosoph/bsw-growth-agent
+- **GitHub:** github.com/sudosoph/bsw26-agentic-workflows
 - **Twitter:** @sudosoph
 
 ---

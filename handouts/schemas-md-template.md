@@ -127,4 +127,4 @@ This is your trust-building primitive. After 14 consecutive runs with high appro
 
 ---
 
-*Schemas file · part of github.com/sudosoph/bsw-growth-agent · MIT licensed*
+*Schemas file · part of github.com/sudosoph/bsw26-agentic-workflows · MIT licensed*

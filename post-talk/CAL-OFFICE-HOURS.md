@@ -124,7 +124,7 @@ You're booked. Looking forward to it.
 A few things to do before our call · all optional, but you'll get more out
 of the 30 minutes if you do them:
 
-  1. Skim the BSW Growth Agent repo · github.com/sudosoph/bsw-growth-agent
+  1. Skim the BSW Growth Agent repo · github.com/sudosoph/bsw26-agentic-workflows
   2. Have ONE specific question ready · the most useful calls have one
      deep thread, not three shallow ones
   3. If your bottleneck involves outbound · paste 5 emails you've sent
@@ -186,7 +186,7 @@ If you ship something using the BSW Growth Agent template or a fork of it,
 I'd love to hear about it · reply with a link.
 
 If you got value from yesterday and want to pay it forward, the lowest-lift
-thing is sharing the repo (github.com/sudosoph/bsw-growth-agent) with one
+thing is sharing the repo (github.com/sudosoph/bsw26-agentic-workflows) with one
 founder you know who'd benefit.
 
 · Sophia
@@ -228,4 +228,4 @@ If the slug is different from `architect-audit-bsw`, regenerate the slide's QR b
 
 ---
 
-*Toolkit v1 · Sophia Stein · MIT licensed · part of github.com/sudosoph/bsw-growth-agent*
+*Toolkit v1 · Sophia Stein · MIT licensed · part of github.com/sudosoph/bsw26-agentic-workflows*

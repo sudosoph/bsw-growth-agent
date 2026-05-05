@@ -502,7 +502,7 @@
   "id": "bsw-growth-agent",
   "meta": {
     "templateCredsSetupCompleted": false,
-    "description": "The Founder's Discovery Engine — built live at Boulder Startup Week 2026 by Sophia Stein (AI Architect). Listens for ICP signals on HN/Reddit/Product Hunt, drafts personalized customer-discovery emails in your voice via voice.md, drops them in Gmail Drafts (never sends), follows up after 5 days. MIT licensed. Repo: github.com/sudosoph/bsw-growth-agent. Newsletter: agenticarchitect.ai/blog"
+    "description": "The Founder's Discovery Engine — built live at Boulder Startup Week 2026 by Sophia Stein (AI Architect). Listens for ICP signals on HN/Reddit/Product Hunt, drafts personalized customer-discovery emails in your voice via voice.md, drops them in Gmail Drafts (never sends), follows up after 5 days. MIT licensed. Repo: github.com/sudosoph/bsw26-agentic-workflows. Newsletter: agenticarchitect.ai/blog"
   },
   "tags": [
     { "name": "agentic-workflow" },

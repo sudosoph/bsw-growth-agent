@@ -7,7 +7,7 @@
 **Time:** 20 minutes live demo · 45–60 minutes self-paced if new to n8n.
 **License:** MIT — fork freely, ship yours.
 
-**Repo:** [github.com/sudosoph/bsw-growth-agent](https://github.com/sudosoph/bsw-growth-agent)
+**Repo:** [github.com/sudosoph/bsw26-agentic-workflows](https://github.com/sudosoph/bsw26-agentic-workflows)
 **Workshop:** Boulder Startup Week 2026 · Sophia Stein · [agenticarchitect.ai/blog](https://agenticarchitect.ai/blog)
 
 ---
@@ -117,7 +117,7 @@ Two options:
 **Option A — fork the repo (fastest)**
 ```bash
 # In your terminal
-gh repo fork sudosoph/bsw-growth-agent --clone
+gh repo fork sudosoph/bsw26-agentic-workflows --clone
 cd bsw-growth-agent
 ```
 
@@ -559,7 +559,7 @@ Fork the repo, change the trigger, change `icp.md` and `voice.md`, ship. **Same 
 
 ## Resources
 
-- **Repo:** [github.com/sudosoph/bsw-growth-agent](https://github.com/sudosoph/bsw-growth-agent)
+- **Repo:** [github.com/sudosoph/bsw26-agentic-workflows](https://github.com/sudosoph/bsw26-agentic-workflows)
 - **Workflow JSON:** `n8n/bsw-growth-agent.json`
 - **voice.md template:** `handouts/voice-md-template.md`
 - **ICP template:** `handouts/icp-md-template.md`

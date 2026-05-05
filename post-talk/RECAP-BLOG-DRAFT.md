@@ -30,7 +30,7 @@ This past Thursday, May 7, I gave a workshop at Boulder Startup Week called
 about 200 registered, RegenHub stage. I built a customer-discovery agent
 live and open-sourced everything before doors closed.
 
-The repo is here · github.com/sudosoph/bsw-growth-agent · MIT licensed,
+The repo is here · github.com/sudosoph/bsw26-agentic-workflows · MIT licensed,
 fork freely.
 
 This post is a recap for two audiences:
@@ -97,7 +97,7 @@ leveraged Yellow you can pick because the volume is high and the cost
 of a wrong draft is zero (the agent doesn't send · you do).
 
 If you want the worksheet template, it's in the repo:
-github.com/sudosoph/bsw-growth-agent/handouts/20-80-worksheet.md
+github.com/sudosoph/bsw26-agentic-workflows/handouts/20-80-worksheet.md
 ```
 
 ---
@@ -228,7 +228,7 @@ TL;DR
   · n8n + Claude (or Groq) + Gmail · ~$8-15/mo · or $0 free tier
   · 12 transferable patterns + 7 other agents on the same architecture
   · 4-stage trust ladder for graduating from HITL to full auto
-  · MIT licensed · github.com/sudosoph/bsw-growth-agent
+  · MIT licensed · github.com/sudosoph/bsw26-agentic-workflows
 
 What's next:
 
@@ -267,4 +267,4 @@ sophia@agenticarchitect.ai
 
 ---
 
-*Recap draft v1 · sketch only · final voice and edits are yours · part of github.com/sudosoph/bsw-growth-agent*
+*Recap draft v1 · sketch only · final voice and edits are yours · part of github.com/sudosoph/bsw26-agentic-workflows*

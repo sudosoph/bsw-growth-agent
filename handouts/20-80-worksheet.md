@@ -3,7 +3,7 @@
 
 **Workshop:** Architecting Agentic Workflows for the Lean 2026 Startup
 **Speaker:** Sophia Stein · AI Architect
-**Resources:** agenticarchitect.ai/blog · github.com/sudosoph/bsw-growth-agent
+**Resources:** agenticarchitect.ai/blog · github.com/sudosoph/bsw26-agentic-workflows
 
 ---
 
@@ -114,7 +114,7 @@ ________________________________________________________________
 - ☐ Write your `voice.md` and `icp.md` files (start with the templates from the repo)
 
 **This weekend:**
-- ☐ Fork github.com/sudosoph/bsw-growth-agent
+- ☐ Fork github.com/sudosoph/bsw26-agentic-workflows
 - ☐ Import the n8n JSON
 - ☐ Wire up your credentials
 - ☐ Do 3 dry runs

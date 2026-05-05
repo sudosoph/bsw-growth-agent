@@ -27,7 +27,7 @@ A customer-discovery agent that runs on a daily cron. Listens to Hacker News, Re
 
 **License:** MIT, fully open source.
 
-**Repo:** [github.com/sudosoph/bsw-growth-agent](https://github.com/sudosoph/bsw-growth-agent)
+**Repo:** [github.com/sudosoph/bsw26-agentic-workflows](https://github.com/sudosoph/bsw26-agentic-workflows)
 
 ---
 
@@ -254,5 +254,5 @@ If a reader asks something out of scope (e.g., a different framework, a differen
 
 ---
 
-*Guide context v1.0 · MIT licensed · part of github.com/sudosoph/bsw-growth-agent*
+*Guide context v1.0 · MIT licensed · part of github.com/sudosoph/bsw26-agentic-workflows*
 *Maintained by Sophia Stein · sophia@agenticarchitect.ai*

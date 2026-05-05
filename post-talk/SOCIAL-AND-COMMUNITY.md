@@ -30,7 +30,7 @@ a customer-discovery agent that:
 · costs $8-15/mo · or $0 on groq + jina free tier
 
 mit licensed, fork freely:
-github.com/sudosoph/bsw-growth-agent
+github.com/sudosoph/bsw26-agentic-workflows
 
 12 transferable patterns. 7 other agents on the same architecture.
 4-stage trust ladder for graduating from hitl to full auto.
@@ -58,7 +58,7 @@ agenticarchitect.ai/blog
 ### Boulder AI Builders Meetup · post-talk note
 ```
 hey all · for anyone who couldn't make it to my bsw workshop today,
-the full materials are open-source: github.com/sudosoph/bsw-growth-agent
+the full materials are open-source: github.com/sudosoph/bsw26-agentic-workflows
 
 · 50-slide deck (slides/index.html)
 · 17-step build tutorial (TUTORIAL.md)
@@ -78,7 +78,7 @@ build over coffee at the next meetup.
 ```
 hi · ran a workshop at boulder startup week this week on agentic
 workflows for early-stage founders · materials are open source ·
-github.com/sudosoph/bsw-growth-agent
+github.com/sudosoph/bsw26-agentic-workflows
 
 happy to do a shorter version (20-30 min) for a flatirons working
 group session if there's interest, especially anyone working at the
@@ -97,7 +97,7 @@ agenticarchitect.ai/blog
 ```
 hi · for anyone in rmaiig who wasn't at boulder startup week today,
 i open-sourced the customer-discovery agent we built live:
-github.com/sudosoph/bsw-growth-agent
+github.com/sudosoph/bsw26-agentic-workflows
 
 the workshop was for early-stage founders but the patterns generalize ·
 the stack is n8n + claude (or groq for free tier) + gmail · everything
@@ -117,7 +117,7 @@ agenticarchitect.ai/blog
 TITLE: Show HN: BSW Growth Agent — open-source customer-discovery
        agent for lean founders (n8n + Claude + Gmail)
 
-URL:   https://github.com/sudosoph/bsw-growth-agent
+URL:   https://github.com/sudosoph/bsw26-agentic-workflows
 ```
 
 **First comment to seed the thread:**
@@ -161,7 +161,7 @@ Architecting Agentic Workflows · all materials + your next steps
 ```
 Hi · thanks for being there today.
 
-Everything from the workshop is open-source · github.com/sudosoph/bsw-growth-agent
+Everything from the workshop is open-source · github.com/sudosoph/bsw26-agentic-workflows
 
 In the repo:
   · The 50-slide deck if you want to revisit
@@ -243,7 +243,7 @@ Instead of one big tweet, post the announcement as a 5-tweet thread for better e
    a customer-discovery agent that runs while you sleep · n8n +
    claude or groq + gmail · mit licensed.
 
-   github.com/sudosoph/bsw-growth-agent
+   github.com/sudosoph/bsw26-agentic-workflows
 ```
 
 ```
@@ -280,7 +280,7 @@ Instead of one big tweet, post the announcement as a 5-tweet thread for better e
 
 ```
 5/ if you're an early-stage founder still doing outbound by hand:
-   fork it · github.com/sudosoph/bsw-growth-agent
+   fork it · github.com/sudosoph/bsw26-agentic-workflows
 
    if you want to talk through what to automate first ·
    5 free 30-min audits for bsw attendees:

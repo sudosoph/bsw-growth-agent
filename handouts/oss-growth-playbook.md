@@ -92,7 +92,7 @@ The Discovery Engine you got from this workshop is option C, ready-made. Fork it
 
 ## Resources
 
-- **The repo:** github.com/sudosoph/bsw-growth-agent (MIT licensed)
+- **The repo:** github.com/sudosoph/bsw26-agentic-workflows (MIT licensed)
 - **The blog:** agenticarchitect.ai/blog (weekly deep-dives)
 - **Architecture audits:** 5 free for BSW attendees · QR on closing slide
 - **Boulder community:** Boulder AI Builders Meetup · Rocky Mountain AI Interest Group (RMAIIG) · Silicon Flatirons (CU Boulder)

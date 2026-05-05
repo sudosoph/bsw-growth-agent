@@ -690,7 +690,7 @@
   "id": "bsw-growth-agent-lite",
   "meta": {
     "templateCredsSetupCompleted": false,
-    "description": "FREE-TIER version of the BSW Growth Agent. Uses Groq's free Llama 3.3 70B for reasoning, Jina Reader (no key) for web extraction. Total cost: $0 within Groq's free rate limits and n8n.cloud's 14-day trial. Quality is slightly lower than Sonnet 4.6 voice match but acceptable for evaluation. For production, upgrade to bsw-growth-agent.json (Anthropic + Firecrawl). Repo: github.com/sudosoph/bsw-growth-agent \u00b7 MIT licensed."
+    "description": "FREE-TIER version of the BSW Growth Agent. Uses Groq's free Llama 3.3 70B for reasoning, Jina Reader (no key) for web extraction. Total cost: $0 within Groq's free rate limits and n8n.cloud's 14-day trial. Quality is slightly lower than Sonnet 4.6 voice match but acceptable for evaluation. For production, upgrade to bsw-growth-agent.json (Anthropic + Firecrawl). Repo: github.com/sudosoph/bsw26-agentic-workflows \u00b7 MIT licensed."
   },
   "tags": [
     {
