@@ -180,7 +180,7 @@ Yes. The architecture is general. See the "7 other agents" table. Different trig
 ### "Where do I get more help?"
 Three paths:
 1. **Read the blog:** [agenticarchitect.ai/blog](https://agenticarchitect.ai/blog) — weekly deep-dives on agentic architecture
-2. **Book Office Hours:** [cal.com/sudosoph/architect-audit-bsw](https://cal.com/sudosoph/architect-audit-bsw) — 5 free 30-min audits, capped (BSW attendees first)
+2. **Book Office Hours:** [cal.com/sophia-stein/architect-audit-bsw](https://cal.com/sophia-stein/architect-audit-bsw) — 5 free 30-min audits, capped (BSW attendees first)
 3. **Email Sophia:** sophia@agenticarchitect.ai
 
 ### "What's the difference between this and Lindy / Gumloop / Zapier Agents?"
@@ -500,7 +500,7 @@ You can fork, modify, sell, or rebrand this freely. **The only ask:** if you shi
 
 **Sophia Stein** · AI Architect · Local LLM & Agentic Workflows
 - 📝 [agenticarchitect.ai/blog](https://agenticarchitect.ai/blog) — weekly deep-dives
-- 📅 [cal.com/sudosoph/architect-audit-bsw](https://cal.com/sudosoph/architect-audit-bsw) — 5 free 30-min audits for BSW attendees
+- 📅 [cal.com/sophia-stein/architect-audit-bsw](https://cal.com/sophia-stein/architect-audit-bsw) — 5 free 30-min audits for BSW attendees
 - 📧 sophia@agenticarchitect.ai
 - 🐙 [github.com/sudosoph](https://github.com/sudosoph)
 - 📍 Boulder, CO
@@ -1085,7 +1085,7 @@ Fork the repo, change the trigger, change `icp.md` and `voice.md`, ship. **Same 
 - **Workshop slides:** `slides/index.html`
 - **Speaker script:** `script/speaker-notes.md`
 
-**Office Hours · 5 free 30-min audits for BSW attendees:** [cal.com/sudosoph/architect-audit-bsw](https://cal.com/sudosoph/architect-audit-bsw) (capped at 5 bookings)
+**Office Hours · 5 free 30-min audits for BSW attendees:** [cal.com/sophia-stein/architect-audit-bsw](https://cal.com/sophia-stein/architect-audit-bsw) (capped at 5 bookings)
 
 **Newsletter:** [agenticarchitect.ai/blog](https://agenticarchitect.ai/blog) — weekly deep-dives on agentic architecture for lean founders
 
@@ -2281,7 +2281,7 @@ PDFs printed in-room are in the repo too:
 
 You bring your bottleneck — I tell you what to automate, what to leave alone, and which 3 tools to use.
 
-**[Book a slot →](https://cal.com/sudosoph/architect-audit-bsw)**
+**[Book a slot →](https://cal.com/sophia-stein/architect-audit-bsw)**
 
 ### Agentic Architect Blog
 Weekly deep-dives on agentic architecture for lean founders. n8n templates, cost teardowns, what's actually working in 2026.

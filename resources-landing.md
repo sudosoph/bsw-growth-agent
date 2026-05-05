@@ -42,7 +42,7 @@ PDFs printed in-room are in the repo too:
 
 You bring your bottleneck — I tell you what to automate, what to leave alone, and which 3 tools to use.
 
-**[Book a slot →](https://cal.com/sudosoph/architect-audit-bsw)**
+**[Book a slot →](https://cal.com/sophia-stein/architect-audit-bsw)**
 
 ### Agentic Architect Blog
 Weekly deep-dives on agentic architecture for lean founders. n8n templates, cost teardowns, what's actually working in 2026.

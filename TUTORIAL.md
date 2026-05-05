@@ -567,7 +567,7 @@ Fork the repo, change the trigger, change `icp.md` and `voice.md`, ship. **Same 
 - **Workshop slides:** `slides/index.html`
 - **Speaker script:** `script/speaker-notes.md`
 
-**Office Hours · 5 free 30-min audits for BSW attendees:** [cal.com/sudosoph/architect-audit-bsw](https://cal.com/sudosoph/architect-audit-bsw) (capped at 5 bookings)
+**Office Hours · 5 free 30-min audits for BSW attendees:** [cal.com/sophia-stein/architect-audit-bsw](https://cal.com/sophia-stein/architect-audit-bsw) (capped at 5 bookings)
 
 **Newsletter:** [agenticarchitect.ai/blog](https://agenticarchitect.ai/blog) — weekly deep-dives on agentic architecture for lean founders
 

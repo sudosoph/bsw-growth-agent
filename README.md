@@ -221,7 +221,7 @@ You can fork, modify, sell, or rebrand this freely. **The only ask:** if you shi
 
 **Sophia Stein** · AI Architect · Local LLM & Agentic Workflows
 - 📝 [agenticarchitect.ai/blog](https://agenticarchitect.ai/blog) — weekly deep-dives
-- 📅 [cal.com/sudosoph/architect-audit-bsw](https://cal.com/sudosoph/architect-audit-bsw) — 5 free 30-min audits for BSW attendees
+- 📅 [cal.com/sophia-stein/architect-audit-bsw](https://cal.com/sophia-stein/architect-audit-bsw) — 5 free 30-min audits for BSW attendees
 - 📧 sophia@agenticarchitect.ai
 - 🐙 [github.com/sudosoph](https://github.com/sudosoph)
 - 📍 Boulder, CO

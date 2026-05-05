@@ -233,7 +233,7 @@ TL;DR
 What's next:
 
   · I'm running 5 free 30-min Architecture Audits for BSW attendees
-    this month · cal.com/sudosoph/architect-audit-bsw · first-come
+    this month · cal.com/sophia-stein/architect-audit-bsw · first-come
   · Weekly deep-dives on agentic architecture at agenticarchitect.ai/blog
   · I'll be at the next Boulder AI Builders Meetup or RMAIIG event
     if you want to talk in person

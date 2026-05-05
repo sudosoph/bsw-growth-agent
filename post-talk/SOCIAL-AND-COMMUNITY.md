@@ -43,7 +43,7 @@ free for everyone.
 day after bsw · the repo got [N] stars overnight.
 
 5 free 30-min architecture audits for attendees still open ·
-cal.com/sudosoph/architect-audit-bsw
+cal.com/sophia-stein/architect-audit-bsw
 
 writing the recap up next.
 
@@ -182,7 +182,7 @@ If you want to keep going:
   2. Subscribe to agenticarchitect.ai/blog for weekly deep-dives
      on agentic architecture for lean founders
   3. Book one of the 5 free 30-min Architecture Audits I'm running
-     for BSW attendees this month: cal.com/sudosoph/architect-audit-bsw
+     for BSW attendees this month: cal.com/sophia-stein/architect-audit-bsw
      (first-come · already capping)
 
 If you build something using the template, reply to this email
@@ -284,7 +284,7 @@ Instead of one big tweet, post the announcement as a 5-tweet thread for better e
 
    if you want to talk through what to automate first ·
    5 free 30-min audits for bsw attendees:
-   cal.com/sudosoph/architect-audit-bsw
+   cal.com/sophia-stein/architect-audit-bsw
 
    weekly deep-dives at agenticarchitect.ai/blog
 ```

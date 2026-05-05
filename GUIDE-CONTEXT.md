@@ -167,7 +167,7 @@ Yes. The architecture is general. See the "7 other agents" table. Different trig
 ### "Where do I get more help?"
 Three paths:
 1. **Read the blog:** [agenticarchitect.ai/blog](https://agenticarchitect.ai/blog) — weekly deep-dives on agentic architecture
-2. **Book Office Hours:** [cal.com/sudosoph/architect-audit-bsw](https://cal.com/sudosoph/architect-audit-bsw) — 5 free 30-min audits, capped (BSW attendees first)
+2. **Book Office Hours:** [cal.com/sophia-stein/architect-audit-bsw](https://cal.com/sophia-stein/architect-audit-bsw) — 5 free 30-min audits, capped (BSW attendees first)
 3. **Email Sophia:** sophia@agenticarchitect.ai
 
 ### "What's the difference between this and Lindy / Gumloop / Zapier Agents?"
