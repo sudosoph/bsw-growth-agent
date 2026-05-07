@@ -1,0 +1,43 @@
+DIGEST — fix the "generic email with only a count" problem
+============================================================
+
+CAUSE
+  The Digest · Sonnet 4.6 HTTP node currently uses an inline jsonBody
+  expression that references the dead "Discovery · Claude Haiku 4.5 +
+  web_search" node. When that reference fails, the prompt collapses to
+  basically "the agent processed 0 results" and Sonnet has nothing to
+  say in the email.
+
+
+FIX — insert a Build Digest Body code node before the HTTP request
+
+UI steps in n8n:
+
+  1. Add a NEW "Code" node between "Append · Sent log" (or wherever the
+     digest branch starts) and "Digest · Sonnet 4.6".
+     Name it: Build Digest Body
+     Language: JavaScript
+     Paste the contents of: n8n/build-digest-body.js
+
+  2. Open "Digest · Sonnet 4.6" (HTTP node).
+     Change the BODY field:
+       Specify Body: JSON
+       JSON: {{ $json.body }}
+     (Replace the entire current jsonBody expression with that single line.)
+
+  3. Re-wire connections:
+        ... → Build Digest Body → Digest · Sonnet 4.6 → Parse · Digest fields → Gmail · Send digest
+
+  4. Done. The digest now contains:
+       • Per-lead person, signal type, score, source
+       • The actual evidence quote from each post
+       • Where the email is going (sendTo) and how it was resolved
+       • The HN/Reddit/Lobsters profile URL for each lead so the founder
+         can verify the recipient before sending.
+
+
+VERIFY
+  1. Run the workflow.
+  2. Check your inbox for the digest email.
+  3. The body should list 5 drafts, each with person + evidence + recipient
+     verification step. Not just "we processed N results".

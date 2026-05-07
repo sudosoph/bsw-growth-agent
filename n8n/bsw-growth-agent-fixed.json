@@ -1,0 +1,567 @@
+{
+  "name": "Founder's Discovery Engine (fixed)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 13 * * *"
+            }
+          ]
+        }
+      },
+      "id": "trigger-cron",
+      "name": "Cron · Daily 7am MDT",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 200],
+      "notes": "Wakes the agent up daily at 7am Boulder/Denver (13:00 UTC during MDT). Adjust UTC values for your timezone — PT=14, ET=11, UK=06, CET=05."
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "discovery-engine-manual",
+        "responseMode": "lastNode"
+      },
+      "id": "trigger-manual",
+      "name": "Manual · Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 360],
+      "notes": "Manual trigger for testing and live demos. Hit the webhook URL to fire the agent on demand."
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "ICP",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "read-icp",
+      "name": "Read ICP from Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [460, 280],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_GOOGLE_SHEETS_CRED",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "CONFIG: ICP tab columns are icp_description, signal_keywords, subreddits (comma-separated). Edit the Sheet to change agent behavior — no redeploy needed."
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_VOICE_MD_FILE_ID",
+          "mode": "id"
+        },
+        "options": {
+          "binaryPropertyName": "voiceMd"
+        }
+      },
+      "id": "read-voice",
+      "name": "Read voice.md from Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [460, 460],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "REPLACE_GOOGLE_DRIVE_CRED",
+          "name": "Google Drive account"
+        }
+      },
+      "notes": "Pulls the voice.md tone-of-voice file. NOT connected downstream — it's executed by the trigger and read cross-node by Build Draft Body via $('Read voice.md from Drive')."
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const icp = $input.first().json;\n\nconst subreddits = (icp.subreddits || 'SaaS,Entrepreneur,AI_Agents')\n  .split(',')\n  .map(s => 'r/' + s.trim())\n  .join(', ');\n\nconst body = {\n  model: 'claude-haiku-4-5',\n  max_tokens: 2000,\n  tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }],\n  system: `You are a customer-discovery research agent for a lean startup.\n\nICP context:\n${icp.icp_description || ''}\n\nSignal keywords: ${icp.signal_keywords || ''}\n\nReturn ONLY a JSON array. No prose. No explanation.`,\n  messages: [\n    {\n      role: 'user',\n      content: `Use web_search to find recent (last 7 days) public posts on Hacker News, Reddit (${subreddits}), and Product Hunt where founders or operators are publicly displaying signals matching my ICP. Look for: pain mentions, hiring posts I could solve, complaints about competitors, asks for tools.\n\nReturn a JSON array, max 30 items. Each item has: person (handle), signal_type (pain|hiring|complaint|tool_ask), source_url, evidence_quote (verbatim), score (0-10), company, company_url.`\n    }\n  ]\n};\n\nreturn [{ json: { body } }];\n"
+      },
+      "id": "build-discovery-body",
+      "name": "Build Discovery Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 280],
+      "notes": "Constructs the Anthropic /v1/messages body using the ICP fields read from the Sheet. JS template literals handle all string escaping safely."
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "id": "discovery-claude",
+      "name": "Discovery · Claude Haiku 4.5 + web_search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 280],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_ANTHROPIC_HEADER_AUTH",
+          "name": "Anthropic API · x-api-key"
+        }
+      },
+      "notes": "Sub-agent #1 — Haiku 4.5 with built-in web_search tool. Single call does both search AND structured extraction. Returns typed JSON."
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const response = $input.first().json;\nconst contentBlocks = response.content || [];\n\nlet rawText = '';\nfor (const block of contentBlocks) {\n  if (block.type === 'text' && block.text) {\n    rawText += block.text;\n  }\n}\n\nconst jsonMatch = rawText.match(/\\[[\\s\\S]*\\]/);\nif (!jsonMatch) {\n  return [{ json: { error: 'No JSON array in response', raw: rawText, leads: [] } }];\n}\n\nlet leads;\ntry {\n  leads = JSON.parse(jsonMatch[0]);\n} catch (e) {\n  return [{ json: { error: 'JSON parse failed', message: e.message, raw: jsonMatch[0], leads: [] } }];\n}\n\nconst qualified = leads.filter(l => (l.score ?? 0) >= 6);\n\nreturn qualified.map(lead => ({ json: lead }));\n"
+      },
+      "id": "parse-leads",
+      "name": "Parse · Extract qualified leads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 280],
+      "notes": "Parses Claude's response, extracts the JSON array, filters to score >= 6."
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sent",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "read-sent-log",
+      "name": "Read Sent log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1340, 200],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_GOOGLE_SHEETS_CRED",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Idempotency: read the Sent log so we can dedup against already-contacted people."
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const leads = $input.all().map(i => i.json);\nconst sentRows = $('Read Sent log').all().map(i => i.json);\n\nconst contactedUrls    = new Set(sentRows.map(r => r.source_url).filter(Boolean));\nconst contactedHandles = new Set(sentRows.map(r => r.person).filter(Boolean));\n\nconst fresh = leads.filter(lead => {\n  if (lead.source_url && contactedUrls.has(lead.source_url)) return false;\n  if (lead.person     && contactedHandles.has(lead.person))    return false;\n  return true;\n});\n\nfresh.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));\nconst top5 = fresh.slice(0, 5);\n\nreturn top5.map(lead => ({ json: lead }));\n"
+      },
+      "id": "dedup",
+      "name": "Dedup · top 5 fresh leads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 280],
+      "notes": "Idempotency primitive. Filters out already-contacted leads. Keeps top 5 by score for the expensive enrichment step."
+    },
+    {
+      "parameters": {
+        "url": "=https://api.firecrawl.dev/v1/scrape",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ url: $json.company_url || $json.source_url, formats: ['markdown'], onlyMainContent: true }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "firecrawl-enrich",
+      "name": "Firecrawl · enrich top 5",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 280],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_FIRECRAWL_HEADER_AUTH",
+          "name": "Firecrawl API · Authorization Bearer"
+        }
+      },
+      "notes": "Progressive enrichment — only the top 5 leads get a Firecrawl scrape. Apache 2.0 OSS — self-host or Cloud."
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const firecrawl = $input.first().json;\nconst markdown = (firecrawl.data && firecrawl.data.markdown) ? firecrawl.data.markdown : '';\n\nconst body = {\n  model: 'claude-haiku-4-5',\n  max_tokens: 300,\n  system: 'You write concise 2-line company summaries for a lean startup outreach agent. Output plain text. No JSON. No markdown.',\n  messages: [\n    {\n      role: 'user',\n      content: `Company markdown extract:\n\n${markdown.slice(0, 4000)}\n\nIn exactly two sentences, what does this company do and what is their current state?`\n    }\n  ]\n};\n\nreturn [{ json: { body, lead: firecrawl } }];\n"
+      },
+      "id": "build-summarize-body",
+      "name": "Build Summarize Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 280],
+      "notes": "Constructs the Anthropic /v1/messages body using the Firecrawl markdown."
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "id": "summarize-company",
+      "name": "Summarize · Haiku 4.5",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2220, 280],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_ANTHROPIC_HEADER_AUTH",
+          "name": "Anthropic API · x-api-key"
+        }
+      },
+      "notes": "Cheap classifier extracts a 2-sentence company context. Cascade pattern — Haiku for summary, Sonnet for drafting."
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const summary = $input.first().json;\nconst summaryText = (summary.content && summary.content[0] && summary.content[0].text) ? summary.content[0].text : '';\n\nconst lead = $('Dedup · top 5 fresh leads').item.json;\n\nconst voiceBuffer = $('Read voice.md from Drive').item.binary.voiceMd;\nconst voiceMd = voiceBuffer ? Buffer.from(voiceBuffer.data, 'base64').toString('utf-8') : '';\n\nconst body = {\n  model: 'claude-sonnet-4-6',\n  max_tokens: 600,\n  system: [\n    {\n      type: 'text',\n      text: 'You write customer-discovery emails for a lean startup founder. Goal of every email: an INTERVIEW ASK, not a pitch. Soft CTA. 80-110 words. Follow the voice.md file exactly.'\n    },\n    {\n      type: 'text',\n      text: `voice.md contents:\\n\\n${voiceMd}`,\n      cache_control: { type: 'ephemeral' }\n    }\n  ],\n  messages: [\n    {\n      role: 'user',\n      content: `Draft a customer-discovery email.\n\nPerson: ${lead.person || 'unknown'}\nTheir signal: ${lead.signal_type || ''} - ${lead.evidence_quote || ''}\nSource URL: ${lead.source_url || ''}\nCompany context (2 sentences): ${summaryText}\n\nReturn ONLY the email subject and body in this format:\nSUBJECT: [subject line]\nBODY:\n[email body]`\n    }\n  ]\n};\n\nreturn [{ json: { body, lead } }];\n"
+      },
+      "id": "build-draft-body",
+      "name": "Build Draft Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2440, 280],
+      "notes": "Constructs the Sonnet /v1/messages body. Pulls voice.md cross-node from Read voice (which is fired by the trigger but not piped here)."
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" },
+            { "name": "anthropic-beta", "value": "prompt-caching-2024-07-31" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "id": "draft-email",
+      "name": "Draft · Sonnet 4.6 + voice.md",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2660, 280],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_ANTHROPIC_HEADER_AUTH",
+          "name": "Anthropic API · x-api-key"
+        }
+      },
+      "notes": "Sub-agent #2 — Sonnet 4.6 drafts the personalized email using voice.md as cached context. The only premium-token step in the workflow."
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const response = $input.first().json;\nconst text = (response.content?.[0]?.text || '').trim();\n\nconst subjectMatch = text.match(/^SUBJECT:\\s*(.+?)\\s*\\n/);\nconst bodyMatch    = text.match(/BODY:\\s*\\n([\\s\\S]+)$/);\n\nconst subject = subjectMatch ? subjectMatch[1].trim() : 're: a quick question';\nconst body    = bodyMatch ? bodyMatch[1].trim() : text;\n\nconst lead = $('Build Draft Body').item.json.lead;\n\nreturn [{ json: { subject, body, lead } }];\n"
+      },
+      "id": "parse-draft",
+      "name": "Parse · Subject + Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2880, 280]
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "operation": "create",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.body }}",
+        "options": {
+          "sendTo": "={{ $json.lead.person ? $json.lead.person + '@unknown.example' : 'TODO_RESOLVE_EMAIL@example.com' }}"
+        }
+      },
+      "id": "gmail-create-draft",
+      "name": "Gmail · createDraft (HITL gate)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [3100, 280],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_GMAIL_CRED",
+          "name": "Gmail account"
+        }
+      },
+      "notes": "HITL GATE — the agent NEVER sends. Drops a draft in your Drafts folder. You approve and send manually."
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sent",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date":          "={{ new Date().toISOString().slice(0,10) }}",
+            "person":        "={{ $json.lead.person }}",
+            "signal_type":   "={{ $json.lead.signal_type }}",
+            "source_url":    "={{ $json.lead.source_url }}",
+            "score":         "={{ $json.lead.score }}",
+            "draft_subject": "={{ $json.subject }}",
+            "status":        "pending_review"
+          }
+        }
+      },
+      "id": "log-sent",
+      "name": "Append · Sent log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [3320, 360],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_GOOGLE_SHEETS_CRED",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Logs the draft to the Sent sheet with status=pending_review."
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const discoveryCount = $('Discovery · Claude Haiku 4.5 + web_search').all().length;\nconst qualifiedCount = $('Parse · Extract qualified leads').all().length;\nconst dedupCount     = $('Dedup · top 5 fresh leads').all().length;\nconst draftCount     = $('Parse · Subject + Body').all().length;\nconst signalTypes    = $('Dedup · top 5 fresh leads').all().map(i => i.json.signal_type).join(', ');\n\nconst body = {\n  model: 'claude-sonnet-4-6',\n  max_tokens: 400,\n  system: 'You write a brief daily digest email for a founder running a customer-discovery agent. One paragraph. Friendly. Specific numbers.',\n  messages: [\n    {\n      role: 'user',\n      content: `Today the agent processed ${discoveryCount} discovery results, scored ${qualifiedCount} as qualified, deduped to ${dedupCount} fresh leads, and drafted ${draftCount} emails sitting in Gmail Drafts.\n\nTop signal types today: ${signalTypes}\n\nWrite a short morning digest email to the founder. Subject + body. Friendly tone. Tell them what to do next (approve drafts before 5pm).`\n    }\n  ]\n};\n\nreturn [{ json: { body } }];\n"
+      },
+      "id": "build-digest-body",
+      "name": "Build Digest Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3320, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "id": "draft-digest",
+      "name": "Digest · Sonnet 4.6",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3540, 200],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_ANTHROPIC_HEADER_AUTH",
+          "name": "Anthropic API · x-api-key"
+        }
+      },
+      "notes": "Sub-agent #3 — generates the morning digest summary."
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const response = $input.first().json;\nconst text = (response.content?.[0]?.text || '').trim();\n\nconst subjectMatch = text.match(/^SUBJECT:\\s*(.+?)\\s*\\n/i) || text.match(/^Subject:\\s*(.+?)\\s*\\n/);\nconst bodyMatch    = text.match(/(?:BODY:|Body:)\\s*\\n([\\s\\S]+)$/i);\n\nconst subject = subjectMatch ? subjectMatch[1].trim() : 'Discovery Pulse — ' + new Date().toISOString().slice(0,10);\nconst body    = bodyMatch ? bodyMatch[1].trim() : text;\n\nreturn [{ json: { subject, body } }];\n"
+      },
+      "id": "parse-digest",
+      "name": "Parse · Digest fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3760, 200]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.body }}",
+        "options": {
+          "sendTo": "REPLACE_WITH_YOUR_EMAIL@example.com"
+        }
+      },
+      "id": "gmail-send-digest",
+      "name": "Gmail · Send digest to founder",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [3980, 200],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_GMAIL_CRED",
+          "name": "Gmail account"
+        }
+      },
+      "notes": "Sends the digest email to YOU. The only place the agent actually sends — and it's only sending to you, not to prospects."
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Runs",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date":          "={{ new Date().toISOString().slice(0,10) }}",
+            "leads_found":   "={{ $('Discovery · Claude Haiku 4.5 + web_search').all().length }}",
+            "qualified":     "={{ $('Parse · Extract qualified leads').all().length }}",
+            "drafts":        "={{ $('Parse · Subject + Body').all().length }}",
+            "errors":        "0",
+            "notes":         "auto"
+          }
+        }
+      },
+      "id": "log-run",
+      "name": "Append · Runs audit log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [4200, 200],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_GOOGLE_SHEETS_CRED",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Audit log — every run appends a row."
+    }
+  ],
+  "connections": {
+    "Cron · Daily 7am MDT": {
+      "main": [[
+        { "node": "Read ICP from Sheets", "type": "main", "index": 0 },
+        { "node": "Read voice.md from Drive", "type": "main", "index": 0 }
+      ]]
+    },
+    "Manual · Webhook": {
+      "main": [[
+        { "node": "Read ICP from Sheets", "type": "main", "index": 0 },
+        { "node": "Read voice.md from Drive", "type": "main", "index": 0 }
+      ]]
+    },
+    "Read ICP from Sheets": {
+      "main": [[ { "node": "Build Discovery Body", "type": "main", "index": 0 } ]]
+    },
+    "Build Discovery Body": {
+      "main": [[ { "node": "Discovery · Claude Haiku 4.5 + web_search", "type": "main", "index": 0 } ]]
+    },
+    "Discovery · Claude Haiku 4.5 + web_search": {
+      "main": [[ { "node": "Parse · Extract qualified leads", "type": "main", "index": 0 } ]]
+    },
+    "Parse · Extract qualified leads": {
+      "main": [[
+        { "node": "Read Sent log", "type": "main", "index": 0 },
+        { "node": "Dedup · top 5 fresh leads", "type": "main", "index": 0 }
+      ]]
+    },
+    "Read Sent log": {
+      "main": [[ { "node": "Dedup · top 5 fresh leads", "type": "main", "index": 0 } ]]
+    },
+    "Dedup · top 5 fresh leads": {
+      "main": [[ { "node": "Firecrawl · enrich top 5", "type": "main", "index": 0 } ]]
+    },
+    "Firecrawl · enrich top 5": {
+      "main": [[ { "node": "Build Summarize Body", "type": "main", "index": 0 } ]]
+    },
+    "Build Summarize Body": {
+      "main": [[ { "node": "Summarize · Haiku 4.5", "type": "main", "index": 0 } ]]
+    },
+    "Summarize · Haiku 4.5": {
+      "main": [[ { "node": "Build Draft Body", "type": "main", "index": 0 } ]]
+    },
+    "Build Draft Body": {
+      "main": [[ { "node": "Draft · Sonnet 4.6 + voice.md", "type": "main", "index": 0 } ]]
+    },
+    "Draft · Sonnet 4.6 + voice.md": {
+      "main": [[ { "node": "Parse · Subject + Body", "type": "main", "index": 0 } ]]
+    },
+    "Parse · Subject + Body": {
+      "main": [[
+        { "node": "Gmail · createDraft (HITL gate)", "type": "main", "index": 0 },
+        { "node": "Append · Sent log", "type": "main", "index": 0 }
+      ]]
+    },
+    "Gmail · createDraft (HITL gate)": {
+      "main": [[ { "node": "Build Digest Body", "type": "main", "index": 0 } ]]
+    },
+    "Build Digest Body": {
+      "main": [[ { "node": "Digest · Sonnet 4.6", "type": "main", "index": 0 } ]]
+    },
+    "Digest · Sonnet 4.6": {
+      "main": [[ { "node": "Parse · Digest fields", "type": "main", "index": 0 } ]]
+    },
+    "Parse · Digest fields": {
+      "main": [[ { "node": "Gmail · Send digest to founder", "type": "main", "index": 0 } ]]
+    },
+    "Gmail · Send digest to founder": {
+      "main": [[ { "node": "Append · Runs audit log", "type": "main", "index": 0 } ]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": ""
+  },
+  "versionId": "bsw-growth-agent-v1.1.0-fixed",
+  "id": "bsw-growth-agent-fixed",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": [
+    { "name": "agentic-workflow" },
+    { "name": "customer-discovery" },
+    { "name": "bsw-2026" },
+    { "name": "fixed" }
+  ]
+}

@@ -9,6 +9,9 @@
 
 **Repo:** [github.com/sudosoph/bsw26-agentic-workflows](https://github.com/sudosoph/bsw26-agentic-workflows)
 **Workshop:** Boulder Startup Week 2026 · Sophia Stein · [agenticarchitect.ai/blog](https://agenticarchitect.ai/blog)
+**Live reference workflow:** https://sophiastein.app.n8n.cloud/workflow/bd3bleAE0dPG4SgN *(replace `sophiastein` with your own n8n Cloud subdomain when you import it; the workflow ID stays the same)*
+
+> ⚠️ **Before you start**, scan [`n8n/README.md`](n8n/README.md) — it captures every platform gotcha we hit while building this live (Reddit blocking n8n Cloud IPs, voice.md DOCX issue, paired-item lookups, 60s code timeout, Gmail "To" field expression mode, etc.). Saves at least an hour of debugging.
 
 ---
 

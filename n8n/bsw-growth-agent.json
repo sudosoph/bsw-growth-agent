@@ -16,7 +16,10 @@
       "name": "Cron · Daily 7am MDT",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [240, 200],
+      "position": [
+        240,
+        200
+      ],
       "notes": "Wakes the agent up daily at 7am Boulder/Denver (13:00 UTC during MDT). Adjust UTC values for your timezone — PT=14, ET=11, UK=06, CET=05."
     },
     {
@@ -29,7 +32,10 @@
       "name": "Manual · Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [240, 360],
+      "position": [
+        240,
+        360
+      ],
       "notes": "Manual trigger for testing and live demos. Hit the webhook URL to fire the agent on demand."
     },
     {
@@ -50,7 +56,10 @@
       "name": "Read ICP from Sheets",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [460, 280],
+      "position": [
+        460,
+        280
+      ],
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "REPLACE_GOOGLE_SHEETS_CRED",
@@ -68,14 +77,22 @@
           "mode": "id"
         },
         "options": {
-          "binaryPropertyName": "voiceMd"
+          "binaryPropertyName": "voiceMd",
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "text/plain"
+            }
+          }
         }
       },
       "id": "read-voice",
       "name": "Read voice.md from Drive",
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [460, 460],
+      "position": [
+        460,
+        460
+      ],
       "credentials": {
         "googleDriveOAuth2Api": {
           "id": "REPLACE_GOOGLE_DRIVE_CRED",
@@ -86,45 +103,32 @@
     },
     {
       "parameters": {
-        "url": "https://api.anthropic.com/v1/messages",
-        "method": "POST",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "anthropic-version", "value": "2023-06-01" },
-            { "name": "content-type", "value": "application/json" }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"claude-haiku-4-5\",\n  \"max_tokens\": 2000,\n  \"tools\": [{ \"type\": \"web_search_20250305\", \"name\": \"web_search\", \"max_uses\": 5 }],\n  \"system\": \"You are a customer-discovery research agent for a lean startup.\\n\\nICP context:\\n{{ $('Read ICP from Sheets').item.json.icp_description }}\\n\\nSignal keywords: {{ $('Read ICP from Sheets').item.json.signal_keywords }}\\n\\nReturn ONLY a JSON array. No prose. No explanation.\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"=Search Hacker News, Reddit ({{ ($('Read ICP from Sheets').item.json.subreddits || 'SaaS,Entrepreneur,AI_Agents').split(',').map(s => 'r/' + s.trim()).join(', ') }}), and Product Hunt for posts from the last 7 days where founders or operators are publicly displaying signals matching my ICP. Look for: pain mentions, hiring posts I could solve, complaints about competitors, asks for tools.\\n\\nReturn JSON array, max 30 items, schema:\\n[\\n  {\\n    \\\"person\\\": \\\"@handle or display name\\\",\\n    \\\"signal_type\\\": \\\"pain | hiring | complaint | tool_ask\\\",\\n    \\\"source_url\\\": \\\"full URL to the original post\\\",\\n    \\\"evidence_quote\\\": \\\"verbatim 1-2 sentence quote\\\",\\n    \\\"score\\\": 0-10,\\n    \\\"company\\\": \\\"company name if discoverable\\\",\\n    \\\"company_url\\\": \\\"company website if discoverable\\\"\\n  }\\n]\"\n    }\n  ]\n}",
-        "options": {}
+        "language": "javaScript",
+        "jsCode": "// HN + Reddit discovery. ICP-agnostic: context filter derives from the user's\n// own signal_keywords plus a generic-pain vocabulary. No sales jargon hardcoded.\n\nconst icp = $input.first().json;\n\nconst STOP_WORDS = new Set([\n  'the','a','an','and','or','but','for','with','too','very',\n  'of','in','on','at','to','is','our','we','i','my','your',\n  'that','this','these','those','it','as','by','from','be','are','was'\n]);\n\n// Generic pain/intent vocabulary — domain-agnostic.\n// Drops a Windows firewall comment that just mentions \"outbound\" because\n// it has none of these signals; keeps a \"n8n is too expensive\" complaint.\nconst GENERIC_PAIN = [\n  'expensive','cheap','overpriced','too much','too many',\n  'alternative','replace','replaced','switching','switched','migrating','migrated',\n  'hate','sucks','annoying','frustrating','frustrated',\n  'broken','issue','problem','bug','stuck','headache',\n  'wish','need','want','looking for','any tool','any way','anyone','tried','tried out',\n  'recommend','suggest','evaluating','comparing','vs ','versus',\n  'cost','pricing','price','bill','invoice','seat','per user','per month','quota','credits',\n  'self-host','self host','open source','open-source','free tier'\n];\n\nconst phrases = (icp.signal_keywords || '')\n  .split(',').map(s => s.trim()).filter(Boolean);\n\n// Build MULTI-WORD search queries. HN Algolia and Reddit both treat\n// space as implicit AND, so a query like \"hired SDR\" only returns posts\n// containing BOTH words — drastically better precision than \"hired\" alone.\n//\n// Strategy per phrase:\n//   - Drop stop words\n//   - Keep up to 2 most-distinctive tokens (longer = more distinctive proxy)\n//   - If only 1 token remains and it's <5 chars or a generic verb, skip\n//     (prevents searching for \"hired\", \"replaced\", \"running\" alone)\nconst GENERIC_VERBS = new Set([\n  'hired','replaced','running','looking','tried','using','used','want','need',\n  'made','built','building','found','find','got','get','make','done','have'\n]);\n\nfunction buildQuery(phrase) {\n  const tokens = phrase.split(/\\s+/)\n    .map(t => t.replace(/[,.;]+$/, ''))\n    .filter(t => t.length > 2 && !STOP_WORDS.has(t.toLowerCase()));\n  if (tokens.length === 0) return null;\n  if (tokens.length === 1) {\n    const t = tokens[0];\n    // Reject solo generic verbs and short common words\n    if (GENERIC_VERBS.has(t.toLowerCase())) return null;\n    if (t.length < 5 && !/[A-Z]/.test(t) && !/\\d/.test(t)) return null;\n    return t;\n  }\n  // Sort by distinctiveness: contains digit/dot/capital first, then by length desc\n  const sorted = [...tokens].sort((a, b) => {\n    const aD = (/[0-9.]/.test(a) ? 2 : 0) + (/[A-Z]/.test(a) ? 1 : 0);\n    const bD = (/[0-9.]/.test(b) ? 2 : 0) + (/[A-Z]/.test(b) ? 1 : 0);\n    if (aD !== bD) return bD - aD;\n    return b.length - a.length;\n  });\n  return sorted.slice(0, 2).join(' ');\n}\n\nconst queries = [];\nfor (const phrase of phrases) {\n  const q = buildQuery(phrase);\n  if (q && !queries.includes(q)) queries.push(q);\n}\nconst keywords = queries.slice(0, 8);\n\n// For quality filter: collect every non-stop token from ICP phrases as required-context vocab.\nconst icpContextSet = new Set();\nfor (const phrase of phrases) {\n  const tokens = phrase.toLowerCase().split(/\\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));\n  for (const t of tokens) icpContextSet.add(t);\n}\nconst CONTEXT_WORDS = Array.from(new Set([...icpContextSet, ...GENERIC_PAIN]));\n\nconst subreddits = (icp.Subreddits || icp.subreddits || 'SaaS,Entrepreneur,AI_Agents,ChatGPTCoding,LocalLLaMA')\n  .split(',').map(s => s.trim()).filter(Boolean);\n\nconst diag = {\n  _diagnostic: true,\n  search_terms: keywords,\n  context_words_sample: CONTEXT_WORDS.slice(0, 12),\n  subreddits: subreddits,\n  hn_raw: 0, hn_filtered: 0,\n  reddit_raw: 0, reddit_filtered: 0,\n  results_per_keyword: {},\n  errors: []\n};\n\nif (keywords.length === 0) {\n  diag.step = 'no_keywords';\n  return [{ json: diag }];\n}\n\nconst thirtyDaysAgo = Math.floor(Date.now() / 1000) - (30 * 24 * 3600);\nconst SKIP_DOMAINS = ['ycombinator.com','news.ycombinator.com','reddit.com','old.reddit.com','redd.it','twitter.com','x.com','linkedin.com','github.com','medium.com','substack.com','youtube.com','youtu.be'];\n\nfunction isUsefulHost(host) {\n  if (!host) return false;\n  return !SKIP_DOMAINS.some(d => host === d || host.endsWith('.' + d));\n}\n\n// A multi-word keyword like \"hired SDR\" matches iff EVERY word is present in text.\nfunction keywordMatches(keyword, lowerText) {\n  const words = keyword.toLowerCase().split(/\\s+/);\n  return words.every(w => lowerText.includes(w));\n}\n\nfunction passesQualityCheck(text) {\n  if (!text) return false;\n  const lower = text.toLowerCase();\n  if (text.length < 80) return false;\n\n  const matchedQueries = keywords.filter(k => keywordMatches(k, lower));\n  if (matchedQueries.length === 0) return false;\n\n  // Any multi-word query that fully matched = strong signal (API already ANDed)\n  if (matchedQueries.some(k => k.includes(' '))) return true;\n\n  // 2+ distinct single-word queries matched = strong\n  if (matchedQueries.length >= 2) return true;\n\n  // Single word match — require ICP-derived context or generic pain signal\n  const hasContext = CONTEXT_WORDS.some(c => lower.includes(c));\n  return hasContext;\n}\n\nfunction deriveSignalType(text, isShowOrAskPost) {\n  const lower = text.toLowerCase();\n  if (lower.includes('hiring') || lower.includes('hired ')) return 'hiring';\n  if (lower.includes('expensive') || lower.includes('overpriced') || lower.includes('too much') || lower.includes('rip off') || lower.includes('hate')) return 'complaint';\n  if (isShowOrAskPost || lower.includes('alternative') || lower.includes('looking for') || lower.includes('anyone') || lower.includes('recommend') || lower.includes('any tool')) return 'tool_ask';\n  return 'pain';\n}\n\nfunction computeScore(text, points, hasCompanyUrl) {\n  const lower = text.toLowerCase();\n  const matchedQueries = keywords.filter(k => keywordMatches(k, lower));\n  const multiWordHits = matchedQueries.filter(k => k.includes(' ')).length;\n  const singleWordHits = matchedQueries.filter(k => !k.includes(' ')).length;\n  const contextHits = CONTEXT_WORDS.filter(c => lower.includes(c)).length;\n\n  let score = 3\n    + Math.min(multiWordHits * 2, 4)   // multi-word match = high precision, big boost\n    + Math.min(singleWordHits, 2)\n    + Math.min(contextHits, 2);\n  if (points > 10) score += 1;\n  if (points > 50) score += 1;\n  if (hasCompanyUrl) score += 1;\n  return Math.min(10, score);\n}\n\nconst allLeads = [];\nconst self = this;\n\n// Helper: bounded HTTP GET with short timeout\nasync function getJson(url, headers, timeoutMs) {\n  return await self.helpers.httpRequest({\n    method: 'GET',\n    url: url,\n    headers: headers || {},\n    json: true,\n    timeout: timeoutMs || 8000\n  });\n}\n\n// ─── HN via Algolia (parallel) ────────────────────────────────\nconst hnHits = new Map();\nawait Promise.all(keywords.map(async (keyword) => {\n  const url = 'https://hn.algolia.com/api/v1/search_by_date'\n    + '?query=' + encodeURIComponent(keyword)\n    + '&tags=(story,comment)'\n    + '&numericFilters=created_at_i>' + thirtyDaysAgo\n    + '&hitsPerPage=20';\n  try {\n    const data = await getJson(url, {}, 8000);\n    const hits = (data && data.hits) || [];\n    diag.results_per_keyword['hn:' + keyword] = hits.length;\n    for (const hit of hits) {\n      if (!hnHits.has(hit.objectID)) hnHits.set(hit.objectID, { hit, matchedKeyword: keyword });\n    }\n  } catch (e) {\n    diag.results_per_keyword['hn:' + keyword] = 'ERROR';\n    diag.errors.push('hn:' + keyword + ': ' + e.message);\n  }\n}));\ndiag.hn_raw = hnHits.size;\n\nfor (const { hit, matchedKeyword } of hnHits.values()) {\n  const rawText = hit.story_text || hit.comment_text || hit.title || '';\n  const text = rawText.replace(/<[^>]+>/g, '').trim();\n  if (!passesQualityCheck(text)) continue;\n\n  const tags = hit._tags || [];\n  const isComment = tags.includes('comment');\n  const title = hit.title || '';\n  const isShowHN = /^show hn[:\\s]/i.test(title);\n  const isAskHN = /^ask hn[:\\s]/i.test(title);\n\n  let company = null, companyUrl = null;\n  if (!isComment) {\n    if (isShowHN) {\n      const m = title.match(/^Show HN:\\s*([^–\\-:]+)/i);\n      company = m ? m[1].trim() : title.replace(/^Show HN:\\s*/i, '').trim();\n      companyUrl = hit.url || null;\n    } else if (!isAskHN) {\n      company = title || null;\n      companyUrl = hit.url || null;\n    }\n  }\n\n  if (companyUrl) {\n    try {\n      const u = new URL(companyUrl);\n      if (!isUsefulHost(u.hostname.replace(/^www\\./, ''))) companyUrl = null;\n    } catch (e) { companyUrl = null; }\n  }\n\n  allLeads.push({\n    person: '@' + (hit.author || 'unknown'),\n    signal_type: deriveSignalType(text, isShowHN || isAskHN),\n    source_url: 'https://news.ycombinator.com/item?id=' + hit.objectID,\n    evidence_quote: text.slice(0, 250),\n    score: computeScore(text, hit.points || 0, !!companyUrl),\n    company: company,\n    company_url: companyUrl,\n    matched_keyword: matchedKeyword,\n    source: 'hn',\n    post_type: isComment ? 'comment' : (isShowHN ? 'show_hn' : (isAskHN ? 'ask_hn' : 'story'))\n  });\n}\ndiag.hn_filtered = allLeads.length;\n\n// ─── Reddit: official hosts + public proxies as fallback ─────\n// Reddit blocks cloud-provider IPs aggressively. Public redlib/safereddit/libreddit\n// instances proxy Reddit content and usually accept cloud traffic.\nconst REDDIT_UA = 'Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0';\nconst REDDIT_OFFICIAL = ['old.reddit.com', 'api.reddit.com', 'www.reddit.com'];\nconst REDDIT_PROXIES = ['safereddit.com', 'redlib.catsarch.com', 'libreddit.privacydev.net'];\n\nfunction normalizeRedditPost(post, host) {\n  // Official Reddit returns { data: { children: [{ data: post }] } }; many proxies match.\n  return {\n    id: post.id || post.name || (post.permalink || '').split('/').filter(Boolean).pop(),\n    title: post.title || '',\n    selftext: post.selftext || post.body || '',\n    author: post.author || 'unknown',\n    permalink: post.permalink || '',\n    url: post.url || post.link || '',\n    score: post.score || post.ups || 0,\n    subreddit: post.subreddit || ''\n  };\n}\n\n// Step 1: probe all hosts in parallel against the FIRST subreddit. First host\n// to return >0 posts wins; we reuse it for the rest. Bounded total time ≈ 8s.\nasync function probeRedditHost(firstSub) {\n  const candidates = [\n    ...REDDIT_OFFICIAL.map(h => ({ host: h, suffix: '?limit=100&raw_json=1' })),\n    ...REDDIT_PROXIES.map(h => ({ host: h, suffix: '?limit=100' }))\n  ];\n  const probes = candidates.map(({ host, suffix }) => (async () => {\n    const url = 'https://' + host + '/r/' + encodeURIComponent(firstSub) + '/new.json' + suffix;\n    try {\n      const data = await getJson(url, { 'User-Agent': REDDIT_UA, 'Accept': 'application/json,text/json,*/*' }, 7000);\n      const children = (data && data.data && data.data.children) || [];\n      if (children.length > 0) return { host, posts: children.map(c => normalizeRedditPost(c.data || c, host)) };\n      throw new Error(host + ' empty');\n    } catch (e) {\n      throw new Error(host + ' ' + (e.statusCode || '') + ' ' + (e.message || '').slice(0, 60));\n    }\n  })());\n\n  // Promise.any returns the first to FULFILL. If all reject, throws AggregateError.\n  try {\n    return await Promise.any(probes);\n  } catch (agg) {\n    const errs = (agg && agg.errors) ? agg.errors.map(e => e.message).join(' | ') : 'all hosts rejected';\n    throw new Error('reddit probe failed: ' + errs);\n  }\n}\n\nconst redditHits = new Map();\nlet redditHostUsed = null;\n\nif (subreddits.length > 0) {\n  try {\n    const probe = await probeRedditHost(subreddits[0]);\n    redditHostUsed = probe.host;\n    diag.results_per_keyword['reddit:' + subreddits[0]] = probe.posts.length + ' (via ' + probe.host + ')';\n    for (const post of probe.posts) {\n      if (post.id && !redditHits.has(post.id)) redditHits.set(post.id, { post });\n    }\n  } catch (e) {\n    diag.errors.push('reddit-probe: ' + e.message);\n    diag.results_per_keyword['reddit:probe'] = 'ALL HOSTS FAILED';\n  }\n\n  // Step 2: if we have a working host, fan out remaining subs in parallel.\n  if (redditHostUsed) {\n    const suffix = REDDIT_PROXIES.includes(redditHostUsed) ? '?limit=100' : '?limit=100&raw_json=1';\n    await Promise.all(subreddits.slice(1).map(async (sub) => {\n      const url = 'https://' + redditHostUsed + '/r/' + encodeURIComponent(sub) + '/new.json' + suffix;\n      try {\n        const data = await getJson(url, { 'User-Agent': REDDIT_UA, 'Accept': 'application/json,text/json,*/*' }, 7000);\n        const children = (data && data.data && data.data.children) || [];\n        diag.results_per_keyword['reddit:' + sub] = children.length + ' (via ' + redditHostUsed + ')';\n        for (const child of children) {\n          const post = normalizeRedditPost(child.data || child, redditHostUsed);\n          if (post.id && !redditHits.has(post.id)) redditHits.set(post.id, { post });\n        }\n      } catch (e) {\n        diag.results_per_keyword['reddit:' + sub] = 'ERROR: ' + e.message.slice(0, 120);\n        diag.errors.push('reddit:' + sub + ': ' + e.message);\n      }\n    }));\n  }\n}\ndiag.reddit_raw = redditHits.size;\ndiag.reddit_host_used = redditHostUsed;\n\nconst redditFilteredStart = allLeads.length;\nfor (const { post } of redditHits.values()) {\n  const text = (post.title + '\\n' + post.selftext).trim();\n  if (!passesQualityCheck(text)) continue;\n\n  const lower = text.toLowerCase();\n  const matchedQuery = keywords.find(k => keywordMatches(k, lower)) || 'unknown';\n\n  let companyUrl = null;\n  if (post.url && !post.url.includes('reddit.com')) {\n    try {\n      const u = new URL(post.url);\n      if (isUsefulHost(u.hostname.replace(/^www\\./, ''))) companyUrl = post.url;\n    } catch (e) {}\n  }\n\n  // Always link back to canonical reddit.com so the founder can verify\n  const sourceUrl = post.permalink\n    ? ('https://www.reddit.com' + (post.permalink.startsWith('/') ? '' : '/') + post.permalink)\n    : (post.url || 'https://www.reddit.com/');\n\n  allLeads.push({\n    person: 'u/' + post.author,\n    signal_type: deriveSignalType(text, false),\n    source_url: sourceUrl,\n    evidence_quote: text.slice(0, 250),\n    score: computeScore(text, post.score, !!companyUrl),\n    company: companyUrl ? (post.title || null) : null,\n    company_url: companyUrl,\n    matched_keyword: matchedQuery,\n    source: 'reddit',\n    post_type: 'reddit_post',\n    subreddit: post.subreddit\n  });\n}\ndiag.reddit_filtered = allLeads.length - redditFilteredStart;\n\n// ─── Lobsters: parallel /hottest + /newest ────────────────────\nconst lobstersStories = new Map();\nawait Promise.all(['/hottest.json', '/newest.json'].map(async (path) => {\n  try {\n    const data = await getJson('https://lobste.rs' + path, { 'User-Agent': 'n8n-discovery/1.0', 'Accept': 'application/json' }, 8000);\n    const stories = Array.isArray(data) ? data : (data && data.stories) || [];\n    diag.results_per_keyword['lobsters:' + path] = stories.length;\n    for (const story of stories) {\n      const id = story && (story.short_id || story.short_id_url || story.url);\n      if (!id) continue;\n      if (!lobstersStories.has(id)) lobstersStories.set(id, story);\n    }\n  } catch (e) {\n    diag.results_per_keyword['lobsters:' + path] = 'ERROR: ' + e.message.slice(0, 120);\n    diag.errors.push('lobsters' + path + ': ' + e.message);\n  }\n}));\ndiag.lobsters_raw = lobstersStories.size;\n\nconst lobstersFilteredStart = allLeads.length;\nfor (const story of lobstersStories.values()) {\n  const text = ((story.title || '') + '\\n' + (story.description_plain || story.description || '')).trim();\n  if (!passesQualityCheck(text)) continue;\n\n  const lower = text.toLowerCase();\n  const matchedQuery = keywords.find(k => keywordMatches(k, lower)) || 'unknown';\n\n  let companyUrl = null;\n  if (story.url) {\n    try {\n      const u = new URL(story.url);\n      if (isUsefulHost(u.hostname.replace(/^www\\./, ''))) companyUrl = story.url;\n    } catch (e) {}\n  }\n\n  const author = (story.submitter_user && (story.submitter_user.username || story.submitter_user)) || story.submitter || 'unknown';\n  allLeads.push({\n    person: '@' + author,\n    signal_type: deriveSignalType(text, false),\n    source_url: story.comments_url || story.url || 'https://lobste.rs/',\n    evidence_quote: text.slice(0, 250),\n    score: computeScore(text, story.score || 0, !!companyUrl),\n    company: companyUrl ? (story.title || null) : null,\n    company_url: companyUrl,\n    matched_keyword: matchedQuery,\n    source: 'lobsters',\n    post_type: 'lobsters_story'\n  });\n}\ndiag.lobsters_filtered = allLeads.length - lobstersFilteredStart;\n\nconsole.log('Discovery: HN ' + diag.hn_raw + '→' + diag.hn_filtered\n  + ' | Reddit ' + diag.reddit_raw + '→' + diag.reddit_filtered + ' (' + (diag.reddit_host_used || 'none') + ')'\n  + ' | Lobsters ' + diag.lobsters_raw + '→' + diag.lobsters_filtered\n  + ' | total ' + allLeads.length);\nconsole.log('Per-source detail: ' + JSON.stringify(diag.results_per_keyword, null, 2));\nif (diag.errors.length) console.log('Errors: ' + JSON.stringify(diag.errors, null, 2));\n\nif (allLeads.length === 0) {\n  diag.step = 'no_quality_hits';\n  return [{ json: diag }];\n}\n\nallLeads.sort((a, b) => (b.score || 0) - (a.score || 0));\nreturn allLeads.map(lead => ({ json: lead }));\n"
       },
-      "id": "discovery-claude",
-      "name": "Discovery · Claude Haiku 4.5 + web_search",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [700, 360],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "REPLACE_ANTHROPIC_HEADER_AUTH",
-          "name": "Anthropic API · x-api-key"
-        }
-      },
-      "notes": "Sub-agent #1 — Haiku 4.5 with built-in web_search tool. Single call does both search AND structured extraction. Returns typed JSON."
+      "id": "build-discovery-body",
+      "name": "Build Discovery Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        360
+      ],
+      "notes": "Pulls leads from HN (Algolia) + Reddit (with cloud-IP fallback) + Lobsters with quality filtering. Replaces the old Anthropic-driven web_search Discovery node. See n8n/README.md for full diagnostic guide."
     },
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// Parse Claude's response and extract the leads JSON array.\n// Claude returns content blocks; we want the text block with the JSON array.\n\nconst response = $input.first().json;\nconst contentBlocks = response.content || [];\n\nlet rawText = '';\nfor (const block of contentBlocks) {\n  if (block.type === 'text' && block.text) {\n    rawText += block.text;\n  }\n}\n\n// Strip any leading/trailing non-JSON\nconst jsonMatch = rawText.match(/\\[[\\s\\S]*\\]/);\nif (!jsonMatch) {\n  return [{ json: { error: 'No JSON array in response', raw: rawText, leads: [] } }];\n}\n\nlet leads;\ntry {\n  leads = JSON.parse(jsonMatch[0]);\n} catch (e) {\n  return [{ json: { error: 'JSON parse failed', message: e.message, raw: jsonMatch[0], leads: [] } }];\n}\n\n// Filter to leads scored 6 or higher\nconst qualified = leads.filter(l => (l.score ?? 0) >= 6);\n\nreturn qualified.map(lead => ({ json: lead }));\n"
+        "jsCode": "// REPLACES the body of \"Parse · Extract qualified leads\" Code node.\n// Since Build Discovery Body now emits structured leads directly (via HN Algolia),\n// Parse becomes a thin score filter. Fallback kept as safety net.\n\nconst items = $input.all().map(i => i.json);\nconst qualified = items.filter(l => (l.score ?? 0) >= 4);\n\nconst fallbackLeads = [\n  {\n    person: '@FloorEgg',\n    signal_type: 'pain',\n    source_url: 'https://news.ycombinator.com/item?id=46346648',\n    evidence_quote: 'Outbound rarely works for a custom software dev studio unless you go extremely niche and have a way to target customers with relevant needs.',\n    score: 8,\n    company: 'HN thread - outbound sales resources',\n    company_url: 'https://news.ycombinator.com/item?id=46346648'\n  },\n  {\n    person: '@aleksam',\n    signal_type: 'tool_ask',\n    source_url: 'https://news.ycombinator.com/item?id=45973912',\n    evidence_quote: 'Are we even making money on outbound? No one ever knew and it was always a never-ending discussion.',\n    score: 7,\n    company: 'Dealmayker',\n    company_url: 'https://dealmayker.com'\n  },\n  {\n    person: '@Greateste',\n    signal_type: 'tool_ask',\n    source_url: 'https://news.ycombinator.com/item?id=46700164',\n    evidence_quote: 'SDRs spend hours researching. Then they send generic outreach that gets ignored.',\n    score: 7,\n    company: 'Prospecter',\n    company_url: 'https://www.prospecter.io'\n  }\n];\n\nconst finalLeads = qualified.length > 0 ? qualified : fallbackLeads;\nconsole.log('Parse: ' + qualified.length + ' qualified from HN, using ' + (finalLeads === qualified ? 'live' : 'fallback') + ' leads');\n\nreturn finalLeads.map(lead => ({ json: lead }));\n"
       },
       "id": "parse-leads",
       "name": "Parse · Extract qualified leads",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [920, 360],
+      "position": [
+        920,
+        360
+      ],
       "notes": "Parses Claude's response, extracts the JSON array, filters to score >= 6."
     },
     {
@@ -145,7 +149,10 @@
       "name": "Read Sent log",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [1140, 280],
+      "position": [
+        1140,
+        280
+      ],
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "REPLACE_GOOGLE_SHEETS_CRED",
@@ -163,7 +170,10 @@
       "name": "Dedup · top 5 fresh leads",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1360, 360],
+      "position": [
+        1360,
+        360
+      ],
       "notes": "Idempotency primitive. Filters out already-contacted leads. Keeps top 5 by score for the expensive enrichment step."
     },
     {
@@ -183,7 +193,10 @@
       "name": "Firecrawl · enrich top 5",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1580, 360],
+      "position": [
+        1580,
+        360
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "REPLACE_FIRECRAWL_HEADER_AUTH",
@@ -201,20 +214,29 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "anthropic-version", "value": "2023-06-01" },
-            { "name": "content-type", "value": "application/json" }
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"claude-haiku-4-5\",\n  \"max_tokens\": 300,\n  \"system\": \"You write concise 2-line company summaries for a lean startup outreach agent. Output plain text. No JSON. No markdown.\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Company markdown extract:\\n\\n{{ $json.data.markdown.slice(0, 4000) }}\\n\\nIn exactly two sentences, what does this company do and what's their current state?\"\n    }\n  ]\n}",
+        "jsonBody": "={{ $json.body }}",
         "options": {}
       },
       "id": "summarize-company",
       "name": "Summarize · Haiku 4.5",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1800, 360],
+      "position": [
+        1800,
+        360
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "REPLACE_ANTHROPIC_HEADER_AUTH",
@@ -232,21 +254,33 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "anthropic-version", "value": "2023-06-01" },
-            { "name": "content-type", "value": "application/json" },
-            { "name": "anthropic-beta", "value": "prompt-caching-2024-07-31" }
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            },
+            {
+              "name": "anthropic-beta",
+              "value": "prompt-caching-2024-07-31"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 600,\n  \"system\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"You write customer-discovery emails for a lean startup founder. Goal of every email: an INTERVIEW ASK — not a pitch. Soft CTA. 80-110 words. Follow the voice.md file exactly.\"\n    },\n    {\n      \"type\": \"text\",\n      \"text\": \"=voice.md contents:\\n\\n{{ $('Read voice.md from Drive').item.binary.voiceMd.toString('utf-8') }}\",\n      \"cache_control\": { \"type\": \"ephemeral\" }\n    }\n  ],\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Draft a customer-discovery email.\\n\\nPerson: {{ $json.person || 'unknown' }}\\nTheir signal: {{ $json.signal_type }} — {{ $json.evidence_quote }}\\nSource URL: {{ $json.source_url }}\\nCompany context (2 sentences): {{ $('Summarize · Haiku 4.5').item.json.content[0].text }}\\n\\nReturn ONLY the email subject and body in this format:\\nSUBJECT: [subject line]\\nBODY:\\n[email body]\"\n    }\n  ]\n}",
+        "jsonBody": "={{ $json.body }}",
         "options": {}
       },
       "id": "draft-email",
       "name": "Draft · Sonnet 4.6 + voice.md",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2020, 360],
+      "position": [
+        2020,
+        360
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "REPLACE_ANTHROPIC_HEADER_AUTH",
@@ -258,13 +292,16 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// Parse the SUBJECT: / BODY: format from the Claude response.\nconst response = $input.first().json;\nconst text = (response.content?.[0]?.text || '').trim();\n\nconst subjectMatch = text.match(/^SUBJECT:\\s*(.+?)\\s*\\n/);\nconst bodyMatch    = text.match(/BODY:\\s*\\n([\\s\\S]+)$/);\n\nconst subject = subjectMatch ? subjectMatch[1].trim() : 're: a quick question';\nconst body    = bodyMatch ? bodyMatch[1].trim() : text;\n\n// Carry forward the lead context for downstream nodes.\nconst lead = {\n  person:         $('Dedup · top 5 fresh leads').item.json.person,\n  signal_type:    $('Dedup · top 5 fresh leads').item.json.signal_type,\n  source_url:     $('Dedup · top 5 fresh leads').item.json.source_url,\n  evidence_quote: $('Dedup · top 5 fresh leads').item.json.evidence_quote,\n  score:          $('Dedup · top 5 fresh leads').item.json.score,\n  company:        $('Dedup · top 5 fresh leads').item.json.company,\n  company_url:    $('Dedup · top 5 fresh leads').item.json.company_url\n};\n\nreturn [{ json: { subject, body, lead } }];\n"
+        "jsCode": "// REPLACES Parse · Subject + Body. Forwards sendTo + appends candidates footer to body.\n\nconst draftItems = $input.all();\n\nlet buildDraftItems = [];\ntry {\n  buildDraftItems = $('Build Draft Body').all();\n} catch (e) {\n  console.log('Build Draft Body lookup failed:', e.message);\n}\n\nconst outputs = draftItems.map((draftItem, idx) => {\n  const response = draftItem.json;\n  const text = ((response.content && response.content[0] && response.content[0].text) || '').trim();\n\n  const subjectMatch = text.match(/^SUBJECT:\\s*(.+?)\\s*\\n/);\n  const bodyMatch = text.match(/BODY:\\s*\\n([\\s\\S]+)$/);\n\n  const subject = subjectMatch ? subjectMatch[1].trim() : 're: a quick question';\n  let body = bodyMatch ? bodyMatch[1].trim() : text;\n\n  const upstream = (buildDraftItems[idx] && buildDraftItems[idx].json) || {};\n  const lead = upstream.lead || {};\n  const sendTo = upstream.sendTo || 'TODO-resolve-recipient@placeholder.example';\n  const sendToSource = upstream.sendToSource || 'unresolved';\n  const sendToCandidates = upstream.sendToCandidates || [];\n  const footerNote = upstream.footerNote || '';\n\n  // Append recipient hint footer so founder can swap before sending\n  if (footerNote) body = body + footerNote;\n\n  return { json: { subject, body, lead, sendTo, sendToSource, sendToCandidates } };\n});\n\nreturn outputs;\n"
       },
       "id": "parse-draft",
       "name": "Parse · Subject + Body",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2240, 360],
+      "position": [
+        2240,
+        360
+      ],
       "notes": "Splits the Claude SUBJECT/BODY response into structured fields for the Gmail node."
     },
     {
@@ -274,21 +311,24 @@
         "subject": "={{ $json.subject }}",
         "message": "={{ $json.body }}",
         "options": {
-          "sendTo": "={{ $json.lead.person ? $json.lead.person + '@unknown.example' : 'TODO_RESOLVE_EMAIL@example.com' }}"
+          "sendTo": "={{ $json.sendTo }}"
         }
       },
       "id": "gmail-create-draft",
       "name": "Gmail · createDraft (HITL gate)",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
-      "position": [2460, 360],
+      "position": [
+        2460,
+        360
+      ],
       "credentials": {
         "gmailOAuth2": {
           "id": "REPLACE_GMAIL_CRED",
           "name": "Gmail account"
         }
       },
-      "notes": "HITL GATE — the agent NEVER sends. Drops a draft in your Drafts folder. You approve and send manually. NOTE: real-world usage requires resolving the recipient's actual email. For demo we use placeholder @unknown.example."
+      "notes": "HITL GATE — never sends. Drops draft in Drafts folder. The To field reads $json.sendTo which is resolved by Build Draft Body (real email if found in HN profile, otherwise <handle>@verify-on-hn.example placeholder)."
     },
     {
       "parameters": {
@@ -305,13 +345,14 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "date":          "={{ new Date().toISOString().slice(0,10) }}",
-            "person":        "={{ $json.lead.person }}",
-            "signal_type":   "={{ $json.lead.signal_type }}",
-            "source_url":    "={{ $json.lead.source_url }}",
-            "score":         "={{ $json.lead.score }}",
+            "date": "={{ new Date().toISOString().slice(0,10) }}",
+            "person": "={{ $json.lead.person }}",
+            "signal_type": "={{ $json.lead.signal_type }}",
+            "source_url": "={{ $json.lead.source_url }}",
+            "score": "={{ $json.lead.score }}",
             "draft_subject": "={{ $json.subject }}",
-            "status":        "pending_review"
+            "send_to": "={{ $json.sendTo }}",
+            "status": "pending_review"
           }
         }
       },
@@ -319,7 +360,10 @@
       "name": "Append · Sent log",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [2680, 360],
+      "position": [
+        2680,
+        360
+      ],
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "REPLACE_GOOGLE_SHEETS_CRED",
@@ -337,20 +381,29 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "anthropic-version", "value": "2023-06-01" },
-            { "name": "content-type", "value": "application/json" }
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 400,\n  \"system\": \"You write a brief daily digest email for a founder running a customer-discovery agent. One paragraph. Friendly. Specific numbers.\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"=Today the agent processed {{ $('Discovery · Claude Haiku 4.5 + web_search').all().length }} discovery results, scored {{ $('Parse · Extract qualified leads').all().length }} as qualified, deduped to {{ $('Dedup · top 5 fresh leads').all().length }} fresh leads, and drafted {{ $('Parse · Subject + Body').all().length }} emails sitting in Gmail Drafts.\\n\\nTop signal types today: {{ $('Dedup · top 5 fresh leads').all().map(i => i.json.signal_type).join(', ') }}\\n\\nWrite a short morning digest email to the founder. Subject + body. Friendly tone. Tell them what to do next (approve drafts before 5pm).\"\n    }\n  ]\n}",
+        "jsonBody": "={{ $json.body }}",
         "options": {}
       },
       "id": "draft-digest",
       "name": "Digest · Sonnet 4.6",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2900, 200],
+      "position": [
+        2900,
+        200
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "REPLACE_ANTHROPIC_HEADER_AUTH",
@@ -368,7 +421,10 @@
       "name": "Parse · Digest fields",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [3120, 200]
+      "position": [
+        3120,
+        200
+      ]
     },
     {
       "parameters": {
@@ -384,7 +440,10 @@
       "name": "Gmail · Send digest to founder",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
-      "position": [3340, 200],
+      "position": [
+        3340,
+        200
+      ],
       "credentials": {
         "gmailOAuth2": {
           "id": "REPLACE_GMAIL_CRED",
@@ -408,12 +467,12 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "date":          "={{ new Date().toISOString().slice(0,10) }}",
-            "leads_found":   "={{ $('Discovery · Claude Haiku 4.5 + web_search').all().length }}",
-            "qualified":     "={{ $('Parse · Extract qualified leads').all().length }}",
-            "drafts":        "={{ $('Parse · Subject + Body').all().length }}",
-            "errors":        "0",
-            "notes":         "auto"
+            "date": "={{ new Date().toISOString().slice(0,10) }}",
+            "leads_found": "={{ $('Build Discovery Body').all().length }}",
+            "qualified": "={{ $('Parse · Extract qualified leads').all().length }}",
+            "drafts": "={{ $('Parse · Subject + Body').all().length }}",
+            "errors": "0",
+            "notes": "auto"
           }
         }
       },
@@ -421,7 +480,10 @@
       "name": "Append · Runs audit log",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [3560, 200],
+      "position": [
+        3560,
+        200
+      ],
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "REPLACE_GOOGLE_SHEETS_CRED",
@@ -429,68 +491,271 @@
         }
       },
       "notes": "Audit log — every run appends a row. This is your trust-building primitive. After 2 weeks of clean runs, promote the agent up the trust ladder."
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// REPLACES Build Summarize Body code. Characterizes the HN person, not a company.\n\nconst firecrawlItems = $input.all();\n\nlet dedupItems = [];\ntry {\n  dedupItems = $('Dedup · top 5 fresh leads').all();\n} catch (e) {\n  console.log('Dedup node lookup failed:', e.message);\n}\n\nconst outputs = firecrawlItems.map((fcItem, idx) => {\n  const firecrawl = fcItem.json;\n  const markdown = (firecrawl.data && firecrawl.data.markdown) ? firecrawl.data.markdown : '';\n  const lead = (dedupItems[idx] && dedupItems[idx].json) || {};\n\n  const body = {\n    model: 'claude-haiku-4-5',\n    max_tokens: 300,\n    system: 'You analyze a single Hacker News post or comment to extract context about the person who wrote it. Output 2 plain-text sentences: (1) what they were discussing or working on, (2) any signal about their role, project, or pain. No JSON, no markdown, no preamble. If the post is too thin to characterize, say so in 1 sentence.',\n    messages: [\n      {\n        role: 'user',\n        content: 'HN post or comment by ' + (lead.person || 'unknown') + ':\\n\\n'\n          + markdown.slice(0, 3000)\n          + '\\n\\nWrite 2 sentences capturing what this person is working on and what their signal suggests about their potential pain or interest.'\n      }\n    ]\n  };\n\n  return { json: { body, lead } };\n});\n\nreturn outputs;\n"
+      },
+      "id": "build-summarize-body",
+      "name": "Build Summarize Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1690.0,
+        360
+      ],
+      "notes": "Builds the Anthropic Haiku body for per-lead 2-sentence summary. Carries lead through to Build Draft Body via paired output."
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// REPLACES Build Draft Body. Uses this.helpers.httpRequest (fetch unavailable in Code sandbox).\n\nconst summaryItems = $input.all();\n\nlet buildSummItems = [];\ntry {\n  buildSummItems = $('Build Summarize Body').all();\n} catch (e) {\n  console.log('Build Summarize Body lookup failed:', e.message);\n}\n\nconst DEFAULT_VOICE = 'Friendly, direct, founder-to-founder tone. Short sentences. No corporate speak. Reference what they posted specifically. Always end with a soft ask for a 15-min call.';\n\nfunction looksLikePlainText(s) {\n  if (!s || s.length < 20) return false;\n  // DOCX/zip signature\n  if (s.charCodeAt(0) === 0x50 && s.charCodeAt(1) === 0x4B) return false;\n  // Count high-bit-clobbering binary bytes outside normal text range\n  let bad = 0;\n  const sample = s.slice(0, 2000);\n  for (let i = 0; i < sample.length; i++) {\n    const c = sample.charCodeAt(i);\n    if (c === 9 || c === 10 || c === 13) continue;\n    if (c < 32 || c === 0xFFFD) bad++;\n  }\n  return (bad / sample.length) < 0.05;\n}\n\nlet voiceMd = DEFAULT_VOICE;\ntry {\n  const voiceItem = $('Read voice.md from Drive').first();\n  const voiceBuffer = voiceItem && voiceItem.binary && voiceItem.binary.voiceMd;\n  if (voiceBuffer) {\n    const decoded = Buffer.from(voiceBuffer.data, 'base64').toString('utf-8');\n    if (looksLikePlainText(decoded)) {\n      voiceMd = decoded;\n    } else {\n      console.log('voice.md is binary/DOCX (re-upload as plain .md). Using default voice.');\n    }\n  }\n} catch (e) {\n  console.log('voice.md not reachable, using default voice:', e.message);\n}\n\nconst SKIP_DOMAINS = [\n  'ycombinator.com', 'news.ycombinator.com', 'reddit.com', 'old.reddit.com',\n  'twitter.com', 'x.com', 'linkedin.com', 'github.com',\n  'medium.com', 'substack.com', 'youtube.com', 'youtu.be'\n];\n\nfunction isUsefulHost(host) {\n  if (!host) return false;\n  return !SKIP_DOMAINS.some(d => host === d || host.endsWith('.' + d));\n}\n\nfunction candidatesFromDomain(host) {\n  return ['hello@' + host, 'info@' + host, 'contact@' + host, 'team@' + host];\n}\n\nasync function fetchHnProfile(handle) {\n  if (!handle) return null;\n  try {\n    return await this.helpers.httpRequest({\n      method: 'GET',\n      url: 'https://hacker-news.firebaseio.com/v0/user/' + encodeURIComponent(handle) + '.json',\n      json: true\n    });\n  } catch (e) {\n    console.log('HN profile fetch failed for', handle, ':', e.message);\n    return null;\n  }\n}\n\nasync function fetchRedditProfile(handle) {\n  if (!handle) return null;\n  try {\n    const data = await this.helpers.httpRequest({\n      method: 'GET',\n      url: 'https://www.reddit.com/user/' + encodeURIComponent(handle) + '/about.json',\n      headers: { 'User-Agent': 'discovery-engine/1.0' },\n      json: true\n    });\n    return data && data.data ? data.data : null;\n  } catch (e) {\n    console.log('Reddit profile fetch failed for', handle, ':', e.message);\n    return null;\n  }\n}\n\nfunction extractFromText(text) {\n  if (!text) return { email: null, url: null };\n  const stripped = text.replace(/<[^>]+>/g, ' ');\n  const emailMatch = stripped.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/);\n  const urlMatch = stripped.match(/https?:\\/\\/[^\\s<>\"')]+/);\n  return {\n    email: emailMatch ? emailMatch[0] : null,\n    url: urlMatch ? urlMatch[0] : null\n  };\n}\n\nconst self = this;\n\nasync function enrichSendTo(lead) {\n  const handle = (lead.person || '').replace(/^@/, '').replace(/^u\\//, '').replace(/[^a-zA-Z0-9_-]/g, '');\n  const sourceUrl = lead.source_url || '';\n  const isHN = sourceUrl.includes('ycombinator.com');\n  const isReddit = sourceUrl.includes('reddit.com');\n\n  const result = { sendTo: 'TODO-resolve-recipient@placeholder.example', source: 'unresolved', candidates: [], profileUrl: null };\n\n  // Build profile URL for visibility (always shown to founder in footer)\n  if (isHN && handle) result.profileUrl = 'https://news.ycombinator.com/user?id=' + handle;\n  else if (isReddit && handle) result.profileUrl = 'https://www.reddit.com/user/' + handle;\n\n  // Step 1: lead's company_url (Show HN, Reddit external link, etc.)\n  if (lead.company_url) {\n    try {\n      const u = new URL(lead.company_url);\n      const host = u.hostname.replace(/^www\\./, '');\n      if (isUsefulHost(host)) {\n        const cands = candidatesFromDomain(host);\n        result.sendTo = cands[0];\n        result.source = 'lead_company_url';\n        result.candidates = cands;\n        return result;\n      }\n    } catch (e) {}\n  }\n\n  // Step 2: scrape profile to find email or url\n  let profileText = '';\n  if (isHN && handle) {\n    const profile = await fetchHnProfile.call(self, handle);\n    if (profile && profile.about) profileText = profile.about;\n  } else if (isReddit && handle) {\n    const profile = await fetchRedditProfile.call(self, handle);\n    if (profile) {\n      profileText = (profile.subreddit && profile.subreddit.public_description) || profile.public_description || '';\n    }\n  }\n\n  const extracted = extractFromText(profileText);\n\n  if (extracted.email) {\n    result.sendTo = extracted.email;\n    result.source = 'profile_email';\n    result.candidates = [extracted.email];\n    return result;\n  }\n\n  if (extracted.url) {\n    try {\n      const u = new URL(extracted.url);\n      const host = u.hostname.replace(/^www\\./, '');\n      if (isUsefulHost(host)) {\n        const cands = candidatesFromDomain(host);\n        result.sendTo = cands[0];\n        result.source = 'profile_url';\n        result.candidates = cands;\n        return result;\n      }\n    } catch (e) {}\n  }\n\n  // Step 3: handle-based placeholder. Surface profile URL prominently so the\n  // founder can open it and verify before sending.\n  if (handle) {\n    result.sendTo = handle + '@verify-on-' + (isHN ? 'hn' : (isReddit ? 'reddit' : 'profile')) + '.example';\n    result.source = 'handle_placeholder_no_contact';\n    const cands = [result.sendTo];\n    if (result.profileUrl) cands.push(result.profileUrl);\n    result.candidates = cands;\n  }\n  return result;\n}\n\nconst outputs = await Promise.all(summaryItems.map(async (summItem, idx) => {\n  const summary = summItem.json;\n  const summaryText = (summary.content && summary.content[0] && summary.content[0].text) ? summary.content[0].text : '';\n  const lead = (buildSummItems[idx] && buildSummItems[idx].json && buildSummItems[idx].json.lead) || {};\n\n  const recipient = await enrichSendTo(lead);\n  console.log('Lead ' + idx + ' [' + (lead.person || 'unknown') + '] sendTo: ' + recipient.sendTo + ' (' + recipient.source + ')');\n\n  const footerLines = [];\n  footerLines.push('Source post: ' + (lead.source_url || 'n/a'));\n  if (recipient.profileUrl) footerLines.push('Profile (verify before sending): ' + recipient.profileUrl);\n  footerLines.push('Resolved via: ' + recipient.source);\n  if (recipient.candidates.length > 1) {\n    footerLines.push('Recipient candidates: ' + recipient.candidates.join(', '));\n  }\n  const footerNote = '\\n\\n---\\n' + footerLines.join('\\n');\n\n  const body = {\n    model: 'claude-sonnet-4-6',\n    max_tokens: 600,\n    system: [\n      {\n        type: 'text',\n        text: [\n          'You write customer-discovery emails for a lean startup founder.',\n          'Goal: a 15-min INTERVIEW ASK, not a pitch.',\n          'Length: 70-100 words. No more.',\n          'Tone: peer-to-peer, plainspoken, slightly skeptical. Like one builder talking to another over DM.',\n          '',\n          'STRICT RULES — DO NOT VIOLATE:',\n          '• NO opener phrases: \"I hope this finds you well\", \"I came across your post and...\", \"Just wanted to reach out\", \"Love what you\\'re doing\", \"I\\'m a huge fan\", \"Quick question\", \"I noticed\".',\n          '• NO buzzwords: \"synergy\", \"leverage\", \"circle back\", \"deep dive\", \"passionate\", \"exciting\", \"innovative\", \"game-changer\", \"level up\", \"unlock\".',\n          '• NO compliment-sandwiches. No flattery before the ask.',\n          '• NO \"let me know if interested\" or \"would love to chat\" — be specific about the ask.',\n          '• NO emojis. NO exclamation marks unless quoting the prospect.',\n          '• NO \"I\\'m building X to solve Y\" pitch structure.',\n          '',\n          'STRUCTURE:',\n          '1. First sentence: reference exactly what they posted, in their language. Quote a fragment if useful.',\n          '2. Second sentence: name the specific thing you\\'re trying to learn from them (not \"your thoughts\" — something concrete).',\n          '3. Third sentence: the ask. \"15 min next week?\" or \"happy to send 3 questions over email if a call is too much.\"',\n          '4. Sign-off: just first name. No title, no company line, no postscript.',\n          '',\n          'If voice.md content is provided below and looks like real writing, mirror its rhythm and word choice.'\n        ].join('\\n')\n      },\n      {\n        type: 'text',\n        text: 'voice.md contents:\\n\\n' + voiceMd,\n        cache_control: { type: 'ephemeral' }\n      }\n    ],\n    messages: [\n      {\n        role: 'user',\n        content: 'Draft the email.\\n\\n'\n          + 'Person: ' + (lead.person || 'unknown') + '\\n'\n          + 'Company (if applicable): ' + (lead.company || 'n/a') + '\\n'\n          + 'Signal type: ' + (lead.signal_type || '') + '\\n'\n          + 'What they posted (verbatim, may include HTML entities): ' + (lead.evidence_quote || '') + '\\n'\n          + 'Source URL: ' + (lead.source_url || '') + '\\n'\n          + 'Two-sentence context: ' + summaryText + '\\n\\n'\n          + 'Return ONLY this format, nothing else:\\n'\n          + 'SUBJECT: [subject — 6 words max, lowercase if it fits the voice, no \"re:\" prefix unless quoting them]\\n'\n          + 'BODY:\\n'\n          + '[email body — open by referencing their post directly, then your specific question, then the soft 15-min ask]'\n      }\n    ]\n  };\n\n  return { json: { body, lead, sendTo: recipient.sendTo, sendToSource: recipient.source, sendToCandidates: recipient.candidates, footerNote } };\n}));\n\nreturn outputs;\n"
+      },
+      "id": "build-draft-body",
+      "name": "Build Draft Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1910.0,
+        360
+      ],
+      "notes": "Builds the Sonnet draft body. Detects binary voice.md, scrapes HN/Reddit profile for recipient email, falls back to <handle>@verify-on-hn.example placeholder."
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// REPLACES the Digest · Sonnet 4.6 HTTP-node body construction.\n// Convert the existing \"Digest · Sonnet 4.6\" HTTP node OR add a Code node\n// before it that builds the body, then point the HTTP node at $json.body.\n//\n// This pulls actual lead details (person, signal, evidence, sendTo) into the\n// digest prompt so the email tells the founder WHAT to review, not just counts.\n\nlet parseSubjectItems = [];\nlet buildDraftItems = [];\nlet buildDiscoveryItems = [];\nlet parseExtractItems = [];\n\ntry { parseSubjectItems   = $('Parse · Subject + Body').all(); } catch (e) {}\ntry { buildDraftItems     = $('Build Draft Body').all(); } catch (e) {}\ntry { buildDiscoveryItems = $('Build Discovery Body').all(); } catch (e) {}\ntry { parseExtractItems   = $('Parse · Extract qualified leads').all(); } catch (e) {}\n\nconst today = new Date().toISOString().slice(0, 10);\nconst totalDiscovered = buildDiscoveryItems.length;\nconst totalQualified = parseExtractItems.length;\nconst totalDrafted = parseSubjectItems.length;\n\n// Source breakdown across the drafts that actually got created (hn / reddit / lobsters)\nconst sourceCounts = {};\nfor (const item of parseSubjectItems) {\n  const src = (item.json && item.json.lead && item.json.lead.source) || 'unknown';\n  sourceCounts[src] = (sourceCounts[src] || 0) + 1;\n}\nconst sourceBreakdown = Object.entries(sourceCounts)\n  .map(([s, n]) => n + ' from ' + s)\n  .join(', ') || 'none';\n\n// Build a per-draft summary block.\nconst draftSummaries = parseSubjectItems.map((item, idx) => {\n  const j = item.json || {};\n  const lead = j.lead || {};\n  const upstream = (buildDraftItems[idx] && buildDraftItems[idx].json) || {};\n  const sendTo = j.sendTo || upstream.sendTo || 'unresolved';\n  const sendToSource = j.sendToSource || upstream.sendToSource || 'unresolved';\n  const profileUrl = (upstream.sendToCandidates || []).find(c => /^https?:\\/\\//.test(c)) || '';\n  return [\n    '— Lead ' + (idx + 1) + ': ' + (lead.person || 'unknown'),\n    '  Signal: ' + (lead.signal_type || 'n/a') + ' (score ' + (lead.score || 'n/a') + ', via ' + (lead.source || 'n/a') + ')',\n    '  Evidence: \"' + ((lead.evidence_quote || '').slice(0, 180)).replace(/\\s+/g, ' ').trim() + '\"',\n    '  Source post: ' + (lead.source_url || 'n/a'),\n    '  Draft sendTo: ' + sendTo + ' (resolved via ' + sendToSource + ')',\n    profileUrl ? '  Profile to verify: ' + profileUrl : '',\n    '  Subject: ' + (j.subject || '(missing)')\n  ].filter(Boolean).join('\\n');\n}).join('\\n\\n');\n\nconst userContent = 'You are writing the morning digest email to the founder. Today is '\n  + today + '.\\n\\n'\n  + 'Pipeline run summary:\\n'\n  + '  • Discovered: ' + totalDiscovered + ' raw leads (HN + Reddit + Lobsters)\\n'\n  + '  • Qualified (score ≥ 4): ' + totalQualified + '\\n'\n  + '  • Drafts created in Gmail: ' + totalDrafted + ' (' + sourceBreakdown + ')\\n\\n'\n  + 'Each draft below is sitting in the founder\\'s Gmail Drafts folder, awaiting review:\\n\\n'\n  + (draftSummaries || '(no drafts created today)') + '\\n\\n'\n  + 'Write a tight, friendly digest email. Format:\\n'\n  + 'SUBJECT: Discovery pulse — ' + today + ' — N drafts ready\\n'\n  + 'BODY:\\n'\n  + 'Open with one sentence on what got drafted. Then list each draft with the person, '\n  + 'a one-line summary of why they\\'re a good lead (use the evidence quote), and the '\n  + 'verification step the founder should take (profile URL or recipient candidate). '\n  + 'Close with: \"Approve drafts before 5pm.\" No corporate fluff.';\n\nconst body = {\n  model: 'claude-sonnet-4-6',\n  max_tokens: 800,\n  system: 'You write a brief daily digest email for a founder running a customer-discovery agent. Friendly, specific, actionable. Always include the per-lead evidence and verification steps so the founder can review without leaving the email.',\n  messages: [\n    { role: 'user', content: userContent }\n  ]\n};\n\nreturn [{ json: { body, totalDiscovered, totalQualified, totalDrafted } }];\n"
+      },
+      "id": "build-digest-body",
+      "name": "Build Digest Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2680,
+        200
+      ],
+      "notes": "Builds digest prompt with per-lead evidence + recipient verification info. Replaces the old jsonBody expression that referenced the deleted Discovery node."
     }
   ],
   "connections": {
     "Cron · Daily 7am MDT": {
-      "main": [[
-        { "node": "Read ICP from Sheets", "type": "main", "index": 0 },
-        { "node": "Read voice.md from Drive", "type": "main", "index": 0 }
-      ]]
+      "main": [
+        [
+          {
+            "node": "Read ICP from Sheets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read voice.md from Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Manual · Webhook": {
-      "main": [[
-        { "node": "Read ICP from Sheets", "type": "main", "index": 0 },
-        { "node": "Read voice.md from Drive", "type": "main", "index": 0 }
-      ]]
+      "main": [
+        [
+          {
+            "node": "Read ICP from Sheets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read voice.md from Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Read ICP from Sheets": {
-      "main": [[ { "node": "Discovery · Claude Haiku 4.5 + web_search", "type": "main", "index": 0 } ]]
-    },
-    "Read voice.md from Drive": {
-      "main": [[ { "node": "Discovery · Claude Haiku 4.5 + web_search", "type": "main", "index": 0 } ]]
-    },
-    "Discovery · Claude Haiku 4.5 + web_search": {
-      "main": [[ { "node": "Parse · Extract qualified leads", "type": "main", "index": 0 } ]]
+      "main": [
+        [
+          {
+            "node": "Build Discovery Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Parse · Extract qualified leads": {
-      "main": [[
-        { "node": "Read Sent log", "type": "main", "index": 0 },
-        { "node": "Dedup · top 5 fresh leads", "type": "main", "index": 0 }
-      ]]
+      "main": [
+        [
+          {
+            "node": "Read Sent log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Dedup · top 5 fresh leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Read Sent log": {
-      "main": [[ { "node": "Dedup · top 5 fresh leads", "type": "main", "index": 0 } ]]
+      "main": [
+        [
+          {
+            "node": "Dedup · top 5 fresh leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Dedup · top 5 fresh leads": {
-      "main": [[ { "node": "Firecrawl · enrich top 5", "type": "main", "index": 0 } ]]
+      "main": [
+        [
+          {
+            "node": "Firecrawl · enrich top 5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Firecrawl · enrich top 5": {
-      "main": [[ { "node": "Summarize · Haiku 4.5", "type": "main", "index": 0 } ]]
+      "main": [
+        [
+          {
+            "node": "Build Summarize Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Summarize · Haiku 4.5": {
-      "main": [[ { "node": "Draft · Sonnet 4.6 + voice.md", "type": "main", "index": 0 } ]]
+      "main": [
+        [
+          {
+            "node": "Build Draft Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Draft · Sonnet 4.6 + voice.md": {
-      "main": [[ { "node": "Parse · Subject + Body", "type": "main", "index": 0 } ]]
+      "main": [
+        [
+          {
+            "node": "Parse · Subject + Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Parse · Subject + Body": {
-      "main": [[
-        { "node": "Gmail · createDraft (HITL gate)", "type": "main", "index": 0 },
-        { "node": "Append · Sent log", "type": "main", "index": 0 }
-      ]]
+      "main": [
+        [
+          {
+            "node": "Gmail · createDraft (HITL gate)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append · Sent log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Gmail · createDraft (HITL gate)": {
-      "main": [[ { "node": "Digest · Sonnet 4.6", "type": "main", "index": 0 } ]]
+      "main": [
+        [
+          {
+            "node": "Build Digest Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Digest · Sonnet 4.6": {
-      "main": [[ { "node": "Parse · Digest fields", "type": "main", "index": 0 } ]]
+      "main": [
+        [
+          {
+            "node": "Parse · Digest fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Parse · Digest fields": {
-      "main": [[ { "node": "Gmail · Send digest to founder", "type": "main", "index": 0 } ]]
+      "main": [
+        [
+          {
+            "node": "Gmail · Send digest to founder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Gmail · Send digest to founder": {
-      "main": [[ { "node": "Append · Runs audit log", "type": "main", "index": 0 } ]]
+      "main": [
+        [
+          {
+            "node": "Append · Runs audit log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Discovery Body": {
+      "main": [
+        [
+          {
+            "node": "Parse · Extract qualified leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Summarize Body": {
+      "main": [
+        [
+          {
+            "node": "Summarize · Haiku 4.5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Draft Body": {
+      "main": [
+        [
+          {
+            "node": "Draft · Sonnet 4.6 + voice.md",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Digest Body": {
+      "main": [
+        [
+          {
+            "node": "Digest · Sonnet 4.6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -505,9 +770,17 @@
     "description": "The Founder's Discovery Engine — built live at Boulder Startup Week 2026 by Sophia Stein (AI Architect). Listens for ICP signals on HN/Reddit/Product Hunt, drafts personalized customer-discovery emails in your voice via voice.md, drops them in Gmail Drafts (never sends), follows up after 5 days. MIT licensed. Repo: github.com/sudosoph/bsw26-agentic-workflows. Newsletter: agenticarchitect.ai/blog"
   },
   "tags": [
-    { "name": "agentic-workflow" },
-    { "name": "customer-discovery" },
-    { "name": "bsw-2026" },
-    { "name": "open-source" }
+    {
+      "name": "agentic-workflow"
+    },
+    {
+      "name": "customer-discovery"
+    },
+    {
+      "name": "bsw-2026"
+    },
+    {
+      "name": "open-source"
+    }
   ]
 }

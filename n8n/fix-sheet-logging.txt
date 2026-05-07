@@ -1,0 +1,83 @@
+SHEET LOGGING — final fix
+===========================
+
+ROOT CAUSE
+  "Append · Sent log" sits AFTER "Gmail · createDraft", whose response
+  REPLACES the input JSON with { id, threadId, ... }. The lead data is gone
+  by the time the Sheets node runs, so all column expressions evaluate to
+  undefined → n8n rejects the request with "At least one value has to be
+  added under 'Values to Send'" (or silently appends an empty row).
+
+  "Append · Runs audit log" references the deleted "Discovery · Claude
+  Haiku 4.5 + web_search" node, which makes ALL its column expressions
+  fail the same way.
+
+THE FIX — make both Sheets nodes their own parallel branch.
+
+
+────────────────────────────────────────────────────────────
+FIX 1 — Append · Sent log  (parallel branch, no Gmail dependency)
+────────────────────────────────────────────────────────────
+
+Currently:    Parse · Subject + Body → Gmail · createDraft → Append · Sent log
+Change to:    Parse · Subject + Body ─┬─→ Gmail · createDraft
+                                       └─→ Append · Sent log
+
+UI steps in n8n:
+  1. Click the connection arrow from Gmail · createDraft → Append · Sent log
+     and DELETE it.
+  2. Click the small dot on the right side of "Parse · Subject + Body" and
+     drag a new connection to "Append · Sent log".
+     (Parse will now have TWO outgoing edges — one to Gmail, one to Sheets.)
+  3. Open Append · Sent log → Columns. Replace each column expression with:
+
+       date           = {{ new Date().toISOString().slice(0,10) }}
+       person         = {{ $json.lead.person }}
+       signal_type    = {{ $json.lead.signal_type }}
+       source_url     = {{ $json.lead.source_url }}
+       score          = {{ $json.lead.score }}
+       draft_subject  = {{ $json.subject }}
+       send_to        = {{ $json.sendTo }}
+       status         = pending_review
+
+  4. The "Sent" tab in your spreadsheet must have row 1 headers that match
+     EXACTLY (lowercase, no trailing spaces):
+       date | person | signal_type | source_url | score | draft_subject | send_to | status
+
+
+────────────────────────────────────────────────────────────
+FIX 2 — Append · Runs audit log
+────────────────────────────────────────────────────────────
+
+Open the node → Columns. Replace each expression:
+
+  date         = {{ new Date().toISOString().slice(0,10) }}
+  leads_found  = {{ $('Build Discovery Body').all().length }}
+  qualified    = {{ $('Parse · Extract qualified leads').all().length }}
+  drafts       = {{ $('Parse · Subject + Body').all().length }}
+  errors       = 0
+  notes        = auto
+
+⚠️ If any of these nodes were auto-named (e.g. "Code1"), open them, copy the
+   EXACT name from the title bar, and paste into the expression.
+
+⚠️ Same for Parse · Extract qualified leads — verify name.
+
+The "Runs" tab must have row 1 headers:
+  date | leads_found | qualified | drafts | errors | notes
+
+
+────────────────────────────────────────────────────────────
+HOW TO VERIFY
+────────────────────────────────────────────────────────────
+
+1. Right-click "Append · Sent log" → Execute node. The output preview should
+   show all 8 columns populated, not undefined.
+2. Run the whole workflow once. Open the spreadsheet.
+3. Sent tab: should get up to 5 rows (one per drafted lead).
+4. Runs tab: should get 1 row (one per workflow execution).
+
+If Sent is empty after fix:
+  → Your tab name isn't "Sent" or row-1 headers don't match exactly.
+If Runs is empty:
+  → Build Discovery Body node has a different name. Update the expression.

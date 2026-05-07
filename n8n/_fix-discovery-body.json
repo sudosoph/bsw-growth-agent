@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-6",
+  "max_tokens": 2000,
+  "tools": [{ "type": "web_search_20250305", "name": "web_search", "max_uses": 5 }],
+  "system": "You are a customer-discovery research agent for a lean startup.\n\nICP context:\n{{ $('Read ICP from Sheets').item.json.icp_description }}\n\nSignal keywords: {{ $('Read ICP from Sheets').item.json.signal_keywords }}\n\nReturn ONLY a JSON array. No prose. No explanation.",
+  "messages": [
+    {
+      "role": "user",
+      "content": "=Use web_search to find recent (last 7 days) public posts on Hacker News (news.ycombinator.com), Reddit ({{ ($('Read ICP from Sheets').item.json.subreddits || 'SaaS,Entrepreneur,AI_Agents').split(',').map(s => 'r/' + s.trim()).join(', ') }}), and Product Hunt (producthunt.com) where founders or operators are publicly displaying signals matching my ICP. Look for: pain mentions, hiring posts I could solve, complaints about competitors, asks for tools.\n\nReturn JSON array, max 30 items, schema:\n[\n  {\n    \"person\": \"@handle or display name\",\n    \"signal_type\": \"pain | hiring | complaint | tool_ask\",\n    \"source_url\": \"full URL to the original post\",\n    \"evidence_quote\": \"verbatim 1-2 sentence quote\",\n    \"score\": 0-10,\n    \"company\": \"company name if discoverable\",\n    \"company_url\": \"company website if discoverable\"\n  }\n]"
+    }
+  ]
+}

@@ -7,6 +7,9 @@
 **By:** Sophia Stein · AI Architect · [agenticarchitect.ai/blog](https://agenticarchitect.ai/blog)
 **Contact:** sophia@agenticarchitect.ai
 **License:** MIT — fork freely, ship yours
+**Live reference workflow:** https://sophiastein.app.n8n.cloud/workflow/bd3bleAE0dPG4SgN *(replace `sophiastein` with your own n8n Cloud subdomain)*
+
+> 🛠 **Building this yourself?** Read [`n8n/README.md`](n8n/README.md) before you start — it's the consolidated debugging guide covering every platform gotcha (Reddit blocking n8n Cloud IPs, voice.md DOCX conversion, paired-item lookups, 60s code-node timeout, Gmail expression mode, sheet-logging parallel branch, and how to read the per-source diagnostics). Saves about an hour.
 
 ---
 
