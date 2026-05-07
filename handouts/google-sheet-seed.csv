@@ -1,6 +1,6 @@
 tab,column_a,column_b,column_c,column_d,column_e,column_f,column_g
-ICP_HEADER,icp_description,signal_keywords,,,,,
-ICP_ROW1,"Early-stage SaaS founders pre-PMF or just-past-PMF · technical-leaning · running outbound or research themselves · paying for Lindy/Zapier/Clay or hiring SDRs · usually Boulder/Denver/Bay Area but geography is not a hard filter","n8n cost,Lindy credits surprise,hired SDR,replaced our outbound team,Sonnet 4.6 cost,Apollo.io alternative,Smartlead vs Instantly,Clay too expensive,founder-led sales,prospecting for hours,Anthropic bill,running out of credits,n8n self-host,Make.com pricing,LangGraph too complex,agent that drafts emails",,,,,
+ICP_HEADER,icp_description,signal_keywords,subreddits,,,,
+ICP_ROW1,"Early-stage SaaS founders pre-PMF or just-past-PMF · technical-leaning · running outbound or research themselves · paying for Lindy/Zapier/Clay or hiring SDRs · usually Boulder/Denver/Bay Area but geography is not a hard filter","n8n cost,Lindy credits surprise,hired SDR,replaced our outbound team,Sonnet 4.6 cost,Apollo.io alternative,Smartlead vs Instantly,Clay too expensive,founder-led sales,prospecting for hours,Anthropic bill,running out of credits,n8n self-host,Make.com pricing,LangGraph too complex,agent that drafts emails","SaaS,Entrepreneur,AI_Agents,ChatGPTCoding,LocalLLaMA",,,,
 ,,,,,,,
 SENT_HEADER,date,person,signal_type,source_url,score,draft_subject,status
 SENT_ROW1,2026-05-04,@sample_existing_contact,pain,https://news.ycombinator.com/item?id=00000,9,re: your Lindy thread,sent

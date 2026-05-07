@@ -8,8 +8,8 @@
 
 | Layer | Default (in repo) | Free alternative | Premium alternative |
 |---|---|---|---|
-| **Reasoning model (drafting)** | Claude Sonnet 4.6 | Groq · Llama 3.3 70B | OpenAI GPT-5 (paid) |
-| **Routing model (classification)** | Claude Haiku 4.5 | Groq · Llama 3.3 8B | Gemini 3 Flash |
+| **Reasoning model (drafting)** | Claude Sonnet 4.6 | Groq · Llama 4 Scout | OpenAI GPT-5 (paid) |
+| **Routing model (classification)** | Claude Haiku 4.5 | Groq · Llama 3.1 8B Instant | Gemini 3 Flash |
 | **Web search** | Claude `web_search` tool | Tavily free tier (1k/mo) | Perplexity Sonar |
 | **Web extraction** | Firecrawl Cloud | Jina Reader (no key, free) | Browserbase (paid) |
 | **Orchestration runtime** | n8n.cloud | n8n self-hosted Docker | LangGraph (code) |
@@ -21,10 +21,12 @@
 
 **Best for:** workshop attendees who don't want to enter a credit card. ~$0/month forever.
 
+> The drop-in lite workflow `n8n/bsw-growth-agent-lite.json` already implements this recipe end-to-end. Use that file unless you want to learn the swap mechanics yourself.
+
 ### What changes
 
-- **LLM:** swap `claude-haiku-4-5` and `claude-sonnet-4-6` for Groq's free Llama models
-- **Web search:** Groq doesn't have built-in web search · use **Tavily free tier** (1,000 searches/month) or skip the discovery step and use a manual seed list
+- **LLM (drafting/discovery):** swap `claude-sonnet-4-6` and `claude-haiku-4-5` for Groq's `meta-llama/llama-4-scout-17b-16e-instruct` (drafting/discovery) and `llama-3.1-8b-instant` (classification/digest)
+- **Web search:** Groq has no built-in web search — use the public **HN Algolia** + **Reddit JSON** endpoints (both no-auth, no signup), or alternatively **Tavily free tier** (1,000 searches/month)
 - **Web extraction:** swap Firecrawl for **Jina Reader** (no key, no signup)
 
 ### Step 5 (Discovery) — Groq + Tavily
@@ -52,7 +54,7 @@ Replace the Anthropic HTTP Request node with two nodes:
 - Body:
 ```json
 {
-  "model": "llama-3.3-70b-versatile",
+  "model": "meta-llama/llama-4-scout-17b-16e-instruct",
   "messages": [
     {
       "role": "system",
@@ -82,14 +84,14 @@ Header: Authorization: Bearer fc-...
 - (no auth header needed)
 - Returns clean markdown directly
 
-### Step 11 (Drafting) — Groq Llama 3.3 70B
+### Step 11 (Drafting) — Groq Llama 4 Scout
 
 Replace the Sonnet HTTP Request:
 - URL: `https://api.groq.com/openai/v1/chat/completions`
 - Body:
 ```json
 {
-  "model": "llama-3.3-70b-versatile",
+  "model": "meta-llama/llama-4-scout-17b-16e-instruct",
   "messages": [
     { "role": "system", "content": "[voice.md contents]" },
     { "role": "user",   "content": "Draft a customer-discovery email..." }
@@ -97,7 +99,7 @@ Replace the Sonnet HTTP Request:
 }
 ```
 
-**Quality note:** Llama 3.3 70B is solid but won't match Sonnet 4.6 for voice match. Expect ~10–15% more drafts to need editing before sending. For a free demo, fine. For production, upgrade.
+**Quality note:** Llama 4 Scout is fast (~1.5s/call on Groq, non-reasoning) and reliable for JSON extraction, but won't match Sonnet 4.6 for voice match. Expect ~10–15% more drafts to need editing before sending. For a free demo, fine. For production, upgrade to the paid workflow.
 
 ---
 
@@ -162,7 +164,7 @@ Same call structure, just change the URL and model name:
 }
 ```
 
-**Why it's nice:** swap `anthropic/claude-sonnet-4-6` for `openai/gpt-5`, `meta-llama/llama-3.3-70b`, `google/gemini-2.5-pro` etc. without changing anything else.
+**Why it's nice:** swap `anthropic/claude-sonnet-4-6` for `openai/gpt-5`, `meta-llama/llama-4-scout`, `google/gemini-2.5-pro` etc. without changing anything else.
 
 ---
 

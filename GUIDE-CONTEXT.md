@@ -134,14 +134,14 @@ The PocketOS database deletion (April 25, 2026) is the cautionary tale: a Cursor
 
 ### "Do I need a credit card to try this?"
 Not necessarily. Two free-tier paths:
-1. **Groq** (Llama 3.3 70B) for the LLM + **Jina Reader** for web extraction. Both have free tiers, no card. See `CONFIGURATION.md → Recipe 1`.
+1. **Groq** (Llama 4 Scout for drafting, Llama 3.1 8B Instant for cheap classification) for the LLM + **HN Algolia + Reddit JSON** for search (no auth) + **Jina Reader** for web extraction. All free, no card. See `CONFIGURATION.md → Recipe 1`.
 2. **Ollama** running locally if you have a Mac M-series or decent GPU. See `CONFIGURATION.md → Recipe 2`.
 
 The default repo workflow uses Anthropic + Firecrawl (paid). The Lite version (`n8n/bsw-growth-agent-lite.json`) uses Groq + Jina (free).
 
 ### "I don't want to use Anthropic API. Alternatives?"
 Five swap-in options in `CONFIGURATION.md`:
-- **Groq** — free tier, Llama 3.3 models
+- **Groq** — free tier, Llama 4 Scout + Llama 3.1 8B Instant
 - **Gemini** — free tier, 1,500 req/day
 - **OpenRouter** — single API key, many models, ~$10/mo
 - **Ollama** — local, free forever

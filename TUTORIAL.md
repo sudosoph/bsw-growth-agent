@@ -139,7 +139,7 @@ Time budget per step shown in `[X min]`. Total: 18 minutes building + 2 minutes 
 3. Drag a **Schedule Trigger** node onto canvas
 4. Configure:
    - Trigger Interval: `Custom (Cron)`
-   - Cron Expression: `0 7 * * *` (every day at 7:00 AM)
+   - Cron Expression: `0 13 * * *` (every day at 7:00 AM Boulder/Denver during MDT — 13:00 UTC). Adjust UTC for your zone: PT=14, ET=11, UK=06, CET=05.
 
 **Why cron?** Almost every SMB agent starts as a daily scheduled job. You want predictable behavior, not chaos.
 

@@ -32,13 +32,13 @@ You can run this whole agent for **free** for 14 days, then either upgrade or mi
 
 **What you need:**
 - [n8n.cloud](https://n8n.cloud) free 14-day trial (no card)
-- [Groq](https://console.groq.com) free tier · Llama 3.3 70B (no card)
+- [Groq](https://console.groq.com) free tier · Llama 4 Scout + Llama 3.1 8B Instant (no card)
 - [Jina Reader](https://r.jina.ai) for web extraction (no signup needed — just hit `https://r.jina.ai/<URL>`)
 - Your existing Google account (Sheets + Drive + Gmail)
 
 **Total cost:** $0 for the first 14 days. After the n8n.cloud trial: pay $24/mo, OR self-host n8n on a $5/mo Hetzner VPS, OR migrate to Make.com's free tier (1,000 ops/month).
 
-**One-click free-tier workflow:** import [`n8n/bsw-growth-agent-lite.json`](./n8n/bsw-growth-agent-lite.json) directly into n8n.cloud · all Anthropic + Firecrawl nodes are pre-swapped to Groq + Jina. Same architecture, $0 stack.
+**One-click free-tier workflow:** import [`n8n/bsw-growth-agent-lite.json`](./n8n/bsw-growth-agent-lite.json) directly into n8n.cloud. Stack: **Groq Llama 4 Scout** (discovery + drafting) + **Llama 3.1 8B Instant** (classification) + HN Algolia + Reddit JSON + Jina Reader — all no-auth — plus Google Sheets/Drive/Gmail. Same architecture as the paid version, $0 stack. Voice match is noticeably below Sonnet 4.6; fine for evaluation, upgrade to the paid workflow for live customer outreach.
 
 ### ⚡ Autopilot setup with a browser agent (~10 min hands-off)
 
@@ -79,6 +79,33 @@ Follow the 17-step code-along build in **[TUTORIAL.md](./TUTORIAL.md)** — desi
 
 ---
 
+## Configure your agent
+
+After you import the workflow, **everything you tune is in two places**: the Google Sheet's `ICP` tab and the `voice.md` file in Drive. Edit those — the next run picks up your changes. No redeploy.
+
+| What you want to change | Where | How |
+|---|---|---|
+| **Who you target** (your ICP) | Sheet → `ICP` tab → `icp_description` | Plain English — 1–3 sentences |
+| **What signals to listen for** | Sheet → `ICP` tab → `signal_keywords` | Comma-separated phrases. **First entry is what HN gets queried with** in the lite workflow — put your most distinctive keyword first. |
+| **Which subreddits to scan** | Sheet → `ICP` tab → `subreddits` | Comma-separated subreddit names without `r/`. Default: `SaaS,Entrepreneur,AI_Agents,ChatGPTCoding,LocalLLaMA` |
+| **Your writing voice** | Drive → `agentic-architect/voice.md` | 5+ example emails, tone notes, phrases you do and don't use. The agent caches this and follows it. |
+| **When the agent wakes up** | n8n workflow → `Cron · Daily 7am MDT` node | Default: `0 13 * * *` (7am Boulder/Denver during MDT). UTC values: PT=14, ET=11, UK=06, CET=05. |
+| **Who gets the daily digest** | n8n workflow → `Gmail · Send digest to founder` node → `sendTo` | Replace `REPLACE_WITH_YOUR_EMAIL@example.com` with your address |
+| **Which provider/model** | Choose the right workflow file at import time | Free tier: `n8n/bsw-growth-agent-lite.json` (Groq + Jina). Paid: `n8n/bsw-growth-agent.json` (Anthropic + Firecrawl). |
+| **Score threshold for "qualified"** | n8n workflow → `Parse · Extract qualified leads` node | Default: 6. Edit the `>= 6` filter in the JS code. |
+| **How many leads to draft per run** | n8n workflow → `Dedup · top 5 fresh leads` node | Default: 5. Edit `slice(0, 5)` in the JS code. |
+
+### One-shot Sheet setup
+
+Import these CSVs as three tabs in a fresh Google Sheet (File → Import → Upload → Insert new sheet):
+- [`handouts/sheet-tab-icp.csv`](./handouts/sheet-tab-icp.csv) → tab named `ICP`
+- [`handouts/sheet-tab-sent.csv`](./handouts/sheet-tab-sent.csv) → tab named `Sent`
+- [`handouts/sheet-tab-runs.csv`](./handouts/sheet-tab-runs.csv) → tab named `Runs`
+
+Then edit the ICP row to be *yours* before the first run.
+
+---
+
 ## What's in this repo
 
 ```
@@ -93,6 +120,9 @@ bsw-growth-agent/
 ├── handouts/
 │   ├── voice-md-template.md        ← your brand voice file template
 │   ├── icp-md-template.md          ← Ideal Customer Profile template
+│   ├── sheet-tab-icp.csv           ← drop-in ICP tab (icp_description, signal_keywords, subreddits)
+│   ├── sheet-tab-sent.csv          ← drop-in Sent tab headers
+│   ├── sheet-tab-runs.csv          ← drop-in Runs tab headers
 │   ├── schemas-md-template.md      ← agent JSON output schemas
 │   ├── do-not-contact-template.csv ← exclusion list seed
 │   ├── 20-80-worksheet.md          ← workshop worksheet (printable)

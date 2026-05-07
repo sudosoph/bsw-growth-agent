@@ -7,17 +7,17 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 7 * * *"
+              "expression": "0 13 * * *"
             }
           ]
         }
       },
       "id": "trigger-cron",
-      "name": "Cron · Daily 7am",
+      "name": "Cron · Daily 7am MDT",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [240, 200],
-      "notes": "Wakes the agent up daily at 7am. Adjust cron expression to your timezone preference."
+      "notes": "Wakes the agent up daily at 7am Boulder/Denver (13:00 UTC during MDT). Adjust UTC values for your timezone — PT=14, ET=11, UK=06, CET=05."
     },
     {
       "parameters": {
@@ -57,7 +57,7 @@
           "name": "Google Sheets account"
         }
       },
-      "notes": "Reads the ICP tab — your customer profile, signal keywords, buying triggers. Config-as-files pattern."
+      "notes": "CONFIG: ICP tab columns are icp_description, signal_keywords, subreddits (comma-separated). Edit the Sheet to change agent behavior — no redeploy needed."
     },
     {
       "parameters": {
@@ -99,7 +99,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"claude-haiku-4-5\",\n  \"max_tokens\": 2000,\n  \"tools\": [{ \"type\": \"web_search_20250305\", \"name\": \"web_search\", \"max_uses\": 5 }],\n  \"system\": \"You are a customer-discovery research agent for a lean startup.\\n\\nICP context:\\n{{ $('Read ICP from Sheets').item.json.icp_description }}\\n\\nSignal keywords: {{ $('Read ICP from Sheets').item.json.signal_keywords }}\\n\\nReturn ONLY a JSON array. No prose. No explanation.\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Search Hacker News, Reddit (r/SaaS, r/Entrepreneur, r/ChatGPTCoding, r/LocalLLaMA, r/AI_Agents), and Product Hunt for posts from the last 7 days where founders or operators are publicly displaying signals matching my ICP. Look for: pain mentions, hiring posts I could solve, complaints about competitors, asks for tools.\\n\\nReturn JSON array, max 30 items, schema:\\n[\\n  {\\n    \\\"person\\\": \\\"@handle or display name\\\",\\n    \\\"signal_type\\\": \\\"pain | hiring | complaint | tool_ask\\\",\\n    \\\"source_url\\\": \\\"full URL to the original post\\\",\\n    \\\"evidence_quote\\\": \\\"verbatim 1-2 sentence quote\\\",\\n    \\\"score\\\": 0-10,\\n    \\\"company\\\": \\\"company name if discoverable\\\",\\n    \\\"company_url\\\": \\\"company website if discoverable\\\"\\n  }\\n]\"\n    }\n  ]\n}",
+        "jsonBody": "={\n  \"model\": \"claude-haiku-4-5\",\n  \"max_tokens\": 2000,\n  \"tools\": [{ \"type\": \"web_search_20250305\", \"name\": \"web_search\", \"max_uses\": 5 }],\n  \"system\": \"You are a customer-discovery research agent for a lean startup.\\n\\nICP context:\\n{{ $('Read ICP from Sheets').item.json.icp_description }}\\n\\nSignal keywords: {{ $('Read ICP from Sheets').item.json.signal_keywords }}\\n\\nReturn ONLY a JSON array. No prose. No explanation.\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"=Search Hacker News, Reddit ({{ ($('Read ICP from Sheets').item.json.subreddits || 'SaaS,Entrepreneur,AI_Agents').split(',').map(s => 'r/' + s.trim()).join(', ') }}), and Product Hunt for posts from the last 7 days where founders or operators are publicly displaying signals matching my ICP. Look for: pain mentions, hiring posts I could solve, complaints about competitors, asks for tools.\\n\\nReturn JSON array, max 30 items, schema:\\n[\\n  {\\n    \\\"person\\\": \\\"@handle or display name\\\",\\n    \\\"signal_type\\\": \\\"pain | hiring | complaint | tool_ask\\\",\\n    \\\"source_url\\\": \\\"full URL to the original post\\\",\\n    \\\"evidence_quote\\\": \\\"verbatim 1-2 sentence quote\\\",\\n    \\\"score\\\": 0-10,\\n    \\\"company\\\": \\\"company name if discoverable\\\",\\n    \\\"company_url\\\": \\\"company website if discoverable\\\"\\n  }\\n]\"\n    }\n  ]\n}",
         "options": {}
       },
       "id": "discovery-claude",
@@ -432,7 +432,7 @@
     }
   ],
   "connections": {
-    "Cron · Daily 7am": {
+    "Cron · Daily 7am MDT": {
       "main": [[
         { "node": "Read ICP from Sheets", "type": "main", "index": 0 },
         { "node": "Read voice.md from Drive", "type": "main", "index": 0 }

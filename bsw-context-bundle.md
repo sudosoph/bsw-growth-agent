@@ -1,14 +1,14 @@
 # BSW Workshop · Complete Context Bundle
 
 > Single-file context dump for any AI assistant working on agenticarchitect.ai content.
-> Last bundled: 2026-05-05
+> Last bundled: 2026-05-06
 > Source repo: github.com/sudosoph/bsw26-agentic-workflows
 
 ---
 
 
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION · GUIDE-CONTEXT.md
+## FILE: GUIDE-CONTEXT.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Guide Context · for the agenticarchitect.ai site assistant
@@ -147,14 +147,14 @@ The PocketOS database deletion (April 25, 2026) is the cautionary tale: a Cursor
 
 ### "Do I need a credit card to try this?"
 Not necessarily. Two free-tier paths:
-1. **Groq** (Llama 3.3 70B) for the LLM + **Jina Reader** for web extraction. Both have free tiers, no card. See `CONFIGURATION.md → Recipe 1`.
+1. **Groq** (Llama 4 Scout for drafting, Llama 3.1 8B Instant for cheap classification) for the LLM + **HN Algolia + Reddit JSON** for search (no auth) + **Jina Reader** for web extraction. All free, no card. See `CONFIGURATION.md → Recipe 1`.
 2. **Ollama** running locally if you have a Mac M-series or decent GPU. See `CONFIGURATION.md → Recipe 2`.
 
 The default repo workflow uses Anthropic + Firecrawl (paid). The Lite version (`n8n/bsw-growth-agent-lite.json`) uses Groq + Jina (free).
 
 ### "I don't want to use Anthropic API. Alternatives?"
 Five swap-in options in `CONFIGURATION.md`:
-- **Groq** — free tier, Llama 3.3 models
+- **Groq** — free tier, Llama 4 Scout + Llama 3.1 8B Instant
 - **Gemini** — free tier, 1,500 req/day
 - **OpenRouter** — single API key, many models, ~$10/mo
 - **Ollama** — local, free forever
@@ -270,11 +270,9 @@ If a reader asks something out of scope (e.g., a different framework, a differen
 *Guide context v1.0 · MIT licensed · part of github.com/sudosoph/bsw26-agentic-workflows*
 *Maintained by Sophia Stein · sophia@agenticarchitect.ai*
 
----
-
 
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION · README.md
+## FILE: README.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # BSW Growth Agent
@@ -311,13 +309,13 @@ You can run this whole agent for **free** for 14 days, then either upgrade or mi
 
 **What you need:**
 - [n8n.cloud](https://n8n.cloud) free 14-day trial (no card)
-- [Groq](https://console.groq.com) free tier · Llama 3.3 70B (no card)
+- [Groq](https://console.groq.com) free tier · Llama 4 Scout + Llama 3.1 8B Instant (no card)
 - [Jina Reader](https://r.jina.ai) for web extraction (no signup needed — just hit `https://r.jina.ai/<URL>`)
 - Your existing Google account (Sheets + Drive + Gmail)
 
 **Total cost:** $0 for the first 14 days. After the n8n.cloud trial: pay $24/mo, OR self-host n8n on a $5/mo Hetzner VPS, OR migrate to Make.com's free tier (1,000 ops/month).
 
-**One-click free-tier workflow:** import [`n8n/bsw-growth-agent-lite.json`](./n8n/bsw-growth-agent-lite.json) directly into n8n.cloud · all Anthropic + Firecrawl nodes are pre-swapped to Groq + Jina. Same architecture, $0 stack.
+**One-click free-tier workflow:** import [`n8n/bsw-growth-agent-lite.json`](./n8n/bsw-growth-agent-lite.json) directly into n8n.cloud. Stack: **Groq Llama 4 Scout** (discovery + drafting) + **Llama 3.1 8B Instant** (classification) + HN Algolia + Reddit JSON + Jina Reader — all no-auth — plus Google Sheets/Drive/Gmail. Same architecture as the paid version, $0 stack. Voice match is noticeably below Sonnet 4.6; fine for evaluation, upgrade to the paid workflow for live customer outreach.
 
 ### ⚡ Autopilot setup with a browser agent (~10 min hands-off)
 
@@ -358,6 +356,33 @@ Follow the 17-step code-along build in **[TUTORIAL.md](./TUTORIAL.md)** — desi
 
 ---
 
+## Configure your agent
+
+After you import the workflow, **everything you tune is in two places**: the Google Sheet's `ICP` tab and the `voice.md` file in Drive. Edit those — the next run picks up your changes. No redeploy.
+
+| What you want to change | Where | How |
+|---|---|---|
+| **Who you target** (your ICP) | Sheet → `ICP` tab → `icp_description` | Plain English — 1–3 sentences |
+| **What signals to listen for** | Sheet → `ICP` tab → `signal_keywords` | Comma-separated phrases. **First entry is what HN gets queried with** in the lite workflow — put your most distinctive keyword first. |
+| **Which subreddits to scan** | Sheet → `ICP` tab → `subreddits` | Comma-separated subreddit names without `r/`. Default: `SaaS,Entrepreneur,AI_Agents,ChatGPTCoding,LocalLLaMA` |
+| **Your writing voice** | Drive → `agentic-architect/voice.md` | 5+ example emails, tone notes, phrases you do and don't use. The agent caches this and follows it. |
+| **When the agent wakes up** | n8n workflow → `Cron · Daily 7am MDT` node | Default: `0 13 * * *` (7am Boulder/Denver during MDT). UTC values: PT=14, ET=11, UK=06, CET=05. |
+| **Who gets the daily digest** | n8n workflow → `Gmail · Send digest to founder` node → `sendTo` | Replace `REPLACE_WITH_YOUR_EMAIL@example.com` with your address |
+| **Which provider/model** | Choose the right workflow file at import time | Free tier: `n8n/bsw-growth-agent-lite.json` (Groq + Jina). Paid: `n8n/bsw-growth-agent.json` (Anthropic + Firecrawl). |
+| **Score threshold for "qualified"** | n8n workflow → `Parse · Extract qualified leads` node | Default: 6. Edit the `>= 6` filter in the JS code. |
+| **How many leads to draft per run** | n8n workflow → `Dedup · top 5 fresh leads` node | Default: 5. Edit `slice(0, 5)` in the JS code. |
+
+### One-shot Sheet setup
+
+Import these CSVs as three tabs in a fresh Google Sheet (File → Import → Upload → Insert new sheet):
+- [`handouts/sheet-tab-icp.csv`](./handouts/sheet-tab-icp.csv) → tab named `ICP`
+- [`handouts/sheet-tab-sent.csv`](./handouts/sheet-tab-sent.csv) → tab named `Sent`
+- [`handouts/sheet-tab-runs.csv`](./handouts/sheet-tab-runs.csv) → tab named `Runs`
+
+Then edit the ICP row to be *yours* before the first run.
+
+---
+
 ## What's in this repo
 
 ```
@@ -372,6 +397,9 @@ bsw-growth-agent/
 ├── handouts/
 │   ├── voice-md-template.md        ← your brand voice file template
 │   ├── icp-md-template.md          ← Ideal Customer Profile template
+│   ├── sheet-tab-icp.csv           ← drop-in ICP tab (icp_description, signal_keywords, subreddits)
+│   ├── sheet-tab-sent.csv          ← drop-in Sent tab headers
+│   ├── sheet-tab-runs.csv          ← drop-in Runs tab headers
 │   ├── schemas-md-template.md      ← agent JSON output schemas
 │   ├── do-not-contact-template.csv ← exclusion list seed
 │   ├── 20-80-worksheet.md          ← workshop worksheet (printable)
@@ -509,11 +537,9 @@ You can fork, modify, sell, or rebrand this freely. **The only ask:** if you shi
 
 *Built live at Boulder Startup Week 2026 · May 7 · RegenHub*
 
----
-
 
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION · TUTORIAL.md
+## FILE: TUTORIAL.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Build the Founder's Discovery Engine
@@ -657,7 +683,7 @@ Time budget per step shown in `[X min]`. Total: 18 minutes building + 2 minutes 
 3. Drag a **Schedule Trigger** node onto canvas
 4. Configure:
    - Trigger Interval: `Custom (Cron)`
-   - Cron Expression: `0 7 * * *` (every day at 7:00 AM)
+   - Cron Expression: `0 13 * * *` (every day at 7:00 AM Boulder/Denver during MDT — 13:00 UTC). Adjust UTC for your zone: PT=14, ET=11, UK=06, CET=05.
 
 **Why cron?** Almost every SMB agent starts as a daily scheduled job. You want predictable behavior, not chaos.
 
@@ -1095,11 +1121,9 @@ Fork the repo, change the trigger, change `icp.md` and `voice.md`, ship. **Same 
 
 *Tutorial v1.0 · MIT licensed · fork freely · ship yours · — Sophia Stein, AI Architect*
 
----
-
 
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION · CONFIGURATION.md
+## FILE: CONFIGURATION.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Configuration · how to swap providers
@@ -1112,8 +1136,8 @@ Fork the repo, change the trigger, change `icp.md` and `voice.md`, ship. **Same 
 
 | Layer | Default (in repo) | Free alternative | Premium alternative |
 |---|---|---|---|
-| **Reasoning model (drafting)** | Claude Sonnet 4.6 | Groq · Llama 3.3 70B | OpenAI GPT-5 (paid) |
-| **Routing model (classification)** | Claude Haiku 4.5 | Groq · Llama 3.3 8B | Gemini 3 Flash |
+| **Reasoning model (drafting)** | Claude Sonnet 4.6 | Groq · Llama 4 Scout | OpenAI GPT-5 (paid) |
+| **Routing model (classification)** | Claude Haiku 4.5 | Groq · Llama 3.1 8B Instant | Gemini 3 Flash |
 | **Web search** | Claude `web_search` tool | Tavily free tier (1k/mo) | Perplexity Sonar |
 | **Web extraction** | Firecrawl Cloud | Jina Reader (no key, free) | Browserbase (paid) |
 | **Orchestration runtime** | n8n.cloud | n8n self-hosted Docker | LangGraph (code) |
@@ -1125,10 +1149,12 @@ Fork the repo, change the trigger, change `icp.md` and `voice.md`, ship. **Same 
 
 **Best for:** workshop attendees who don't want to enter a credit card. ~$0/month forever.
 
+> The drop-in lite workflow `n8n/bsw-growth-agent-lite.json` already implements this recipe end-to-end. Use that file unless you want to learn the swap mechanics yourself.
+
 ### What changes
 
-- **LLM:** swap `claude-haiku-4-5` and `claude-sonnet-4-6` for Groq's free Llama models
-- **Web search:** Groq doesn't have built-in web search · use **Tavily free tier** (1,000 searches/month) or skip the discovery step and use a manual seed list
+- **LLM (drafting/discovery):** swap `claude-sonnet-4-6` and `claude-haiku-4-5` for Groq's `meta-llama/llama-4-scout-17b-16e-instruct` (drafting/discovery) and `llama-3.1-8b-instant` (classification/digest)
+- **Web search:** Groq has no built-in web search — use the public **HN Algolia** + **Reddit JSON** endpoints (both no-auth, no signup), or alternatively **Tavily free tier** (1,000 searches/month)
 - **Web extraction:** swap Firecrawl for **Jina Reader** (no key, no signup)
 
 ### Step 5 (Discovery) — Groq + Tavily
@@ -1156,7 +1182,7 @@ Replace the Anthropic HTTP Request node with two nodes:
 - Body:
 ```json
 {
-  "model": "llama-3.3-70b-versatile",
+  "model": "meta-llama/llama-4-scout-17b-16e-instruct",
   "messages": [
     {
       "role": "system",
@@ -1186,14 +1212,14 @@ Header: Authorization: Bearer fc-...
 - (no auth header needed)
 - Returns clean markdown directly
 
-### Step 11 (Drafting) — Groq Llama 3.3 70B
+### Step 11 (Drafting) — Groq Llama 4 Scout
 
 Replace the Sonnet HTTP Request:
 - URL: `https://api.groq.com/openai/v1/chat/completions`
 - Body:
 ```json
 {
-  "model": "llama-3.3-70b-versatile",
+  "model": "meta-llama/llama-4-scout-17b-16e-instruct",
   "messages": [
     { "role": "system", "content": "[voice.md contents]" },
     { "role": "user",   "content": "Draft a customer-discovery email..." }
@@ -1201,7 +1227,7 @@ Replace the Sonnet HTTP Request:
 }
 ```
 
-**Quality note:** Llama 3.3 70B is solid but won't match Sonnet 4.6 for voice match. Expect ~10–15% more drafts to need editing before sending. For a free demo, fine. For production, upgrade.
+**Quality note:** Llama 4 Scout is fast (~1.5s/call on Groq, non-reasoning) and reliable for JSON extraction, but won't match Sonnet 4.6 for voice match. Expect ~10–15% more drafts to need editing before sending. For a free demo, fine. For production, upgrade to the paid workflow.
 
 ---
 
@@ -1266,7 +1292,7 @@ Same call structure, just change the URL and model name:
 }
 ```
 
-**Why it's nice:** swap `anthropic/claude-sonnet-4-6` for `openai/gpt-5`, `meta-llama/llama-3.3-70b`, `google/gemini-2.5-pro` etc. without changing anything else.
+**Why it's nice:** swap `anthropic/claude-sonnet-4-6` for `openai/gpt-5`, `meta-llama/llama-4-scout`, `google/gemini-2.5-pro` etc. without changing anything else.
 
 ---
 
@@ -1362,253 +1388,301 @@ Only the *vendor* of each step changes. **Patterns don't change. Tools do.**
 *MIT licensed · fork freely · ship yours · — Sophia Stein, AI Architect*
 *Questions? sophia@agenticarchitect.ai · agenticarchitect.ai/blog*
 
----
-
 
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION · AUTOPILOT.md
+## FILE: AUTOPILOT.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-# Claude for Chrome · Autopilot Setup Script
+# Claude for Chrome · Autopilot Setup
 ## Hands-off setup for the BSW Growth Agent demo
 
-> Paste the prompt below into Claude for Chrome (claude.com/chrome). Stay nearby — you'll need to enter passwords, accept OAuth consent screens, and click through 2FA when it pauses. Total time: ~10 minutes hands-on, ~5 minutes total of *your* attention.
+> Two paths — pick one. **Free** uses Groq + Jina + n8n.cloud trial (no card, ~10 min). **Paid** uses Anthropic + Firecrawl + n8n.cloud trial (~$5–$15 to fund, better voice match).
+>
+> Paste the prompt for your path into Claude for Chrome (claude.com/chrome). Stay nearby — you'll need to enter passwords, accept OAuth screens, and click 2FA.
 
 ---
 
-## Pre-flight (1 minute · do this first manually)
+## Pre-flight (1 minute · do this first manually, both paths)
 
-1. Make sure you're signed into Chrome with your `sophia@agenticarchitect.ai` Google account
-2. Open this file in a tab so Claude for Chrome can read the prompt
-3. Have your phone ready for 2FA codes
-4. Open `/home/sophia-stein/bsw/handouts/voice-md-template.md` and `/home/sophia-stein/bsw/handouts/icp-md-template.md` — Claude for Chrome will copy from these into Google Drive
+1. Sign into Chrome with the Google account that will own the agent
+2. Open this file in a Chrome tab so the Claude extension can read the prompt
+3. Open `/home/sophia-stein/bsw/handouts/voice-md-template.md` and `/home/sophia-stein/bsw/handouts/sheet-tab-icp.csv` in additional tabs — the agent will copy from these
+4. Have your phone ready for 2FA codes
 
 ---
 
-## The autopilot prompt · copy everything between the `===` lines
+## Hard guardrails for Claude for Chrome (apply to BOTH paths)
+
+When you paste the prompt below, the prompt itself starts with these guardrails. They prevent the most common ways an autopilot run goes off-script:
+
+- ❌ **Do NOT write Google Apps Script.** This agent runs on n8n, not Apps Script. Anything that says "Tools → Script editor" is wrong.
+- ❌ **Do NOT create a Jina or Algolia or Reddit account.** All three are used via public no-auth endpoints. There is nothing to sign up for.
+- ❌ **Do NOT improvise alternative tools** ("I'll use Make.com instead", "I'll write a Python script"). The plan is fixed.
+- ❌ **Do NOT skip OAuth consent screens.** Pause and let the human click Allow.
+- ❌ **Do NOT proceed if a step fails.** Stop, report the error verbatim, wait for human guidance.
+
+---
+
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## PATH A · FREE TIER (Groq + Jina, no card)
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Workflow file: `n8n/bsw-growth-agent-lite.json`. Uses Groq's free **Llama 4 Scout** (discovery + drafting) cascading to **Llama 3.1 8B Instant** (cheap classification) + HN Algolia + Reddit JSON + Jina Reader. Total cost: $0 within free tiers. Quality: noticeably below Sonnet 4.6 voice match — fine for evaluation, not ideal for live customer outreach.
+
+### Free-path autopilot prompt
+
+Copy everything between the `=== BEGIN ===` / `=== END ===` markers and paste into Claude for Chrome.
 
 ```
-=== AUTOPILOT PROMPT FOR CLAUDE FOR CHROME · BEGIN ===
+=== AUTOPILOT PROMPT · FREE TIER · BEGIN ===
 
-You are setting up the BSW Growth Agent demo for Sophia Stein, who is presenting at Boulder Startup Week 2026 on Thursday May 7. We are using the FREE-TIER path: Groq for the LLM (no credit card needed), Jina Reader for web extraction (no signup at all), n8n.cloud for the workflow runtime (14-day free trial). Walk through these tasks in order. Pause for me only when you need me to enter a password, accept an OAuth consent screen, accept a Terms of Service, or enter a 2FA code. Otherwise proceed autonomously.
+You are setting up the BSW Growth Agent (FREE tier) for a founder. Stack: n8n.cloud (orchestration) + Groq (LLM, free) + HN Algolia + Reddit JSON + Jina Reader (all no-auth, no signup) + Google Sheets/Drive/Gmail.
 
-CRITICAL: every API key or important value you copy, paste it into a new tab as plain text in this format:
+GUARDRAILS — read and follow exactly:
+1. Do NOT write Google Apps Script. We use n8n.
+2. Do NOT create Jina, Algolia, or Reddit accounts. They use public no-auth endpoints.
+3. Do NOT substitute different tools (Make.com, Zapier, custom scripts).
+4. Pause for human approval at every OAuth consent screen, password prompt, and 2FA step.
+5. If any step fails, STOP and report the verbatim error. Do not retry or work around it.
 
-  ANTHROPIC_API_KEY=sk-ant-...  (or skip)
+CREDENTIAL HANDLING:
+Open a single new tab titled "BSW credentials" and write each value as plain text in this format. Do NOT paste into chat or email:
+
   GROQ_API_KEY=gsk_...
-  FIRECRAWL_API_KEY=fc-...      (optional · free tier)
   N8N_INSTANCE_URL=https://...n8n.cloud
   GOOGLE_SHEET_ID=1AbC...XyZ
   VOICE_MD_FILE_ID=...
-  ICP_MD_FILE_ID=...
-
-I'll copy them from that tab into n8n manually after you finish. Do NOT paste them into chat or email — keep them in the temp tab only.
 
 ═══════════════════════════════════════════════════
-TASK 1 · GROQ FREE TIER (LLM provider)
+TASK 1 · GROQ FREE TIER (LLM)
 ═══════════════════════════════════════════════════
-
-Open https://console.groq.com in a new tab.
-- If sign-in needed, use my sophia@agenticarchitect.ai Google account.
-- Once signed in, navigate to API Keys.
-- Create a new API key named "bsw-growth-agent".
-- Copy the key (starts with "gsk_") to the temp credentials tab.
-- Confirm: Groq's free tier should not ask for a credit card. If it does, pause and tell me — we may need to use a different provider.
+1. Open https://console.groq.com in a new tab.
+2. Sign in with the founder's Google account.
+3. Navigate to API Keys.
+4. Create a new key named "bsw-growth-agent". Copy it (starts with "gsk_") to the credentials tab.
+5. CONFIRM no credit card was requested. If one was, STOP and tell the human.
 
 ═══════════════════════════════════════════════════
 TASK 2 · n8n.CLOUD (workflow runtime)
 ═══════════════════════════════════════════════════
-
-Open https://n8n.cloud in a new tab.
-- Sign up for the 14-day free trial (no credit card required).
-- Use my sophia@agenticarchitect.ai Google account if SSO is offered.
-- Once inside, note the workflow URL (will look like https://[name].app.n8n.cloud) and add it to the temp credentials tab.
-- DO NOT import the workflow yet · we'll do that after creating the Google assets so we can paste IDs in.
+1. Open https://n8n.cloud in a new tab.
+2. Start the 14-day free trial. Use Google SSO if offered. NO credit card required.
+3. Note the workflow URL (https://[name].app.n8n.cloud) and write it to the credentials tab.
+4. Do NOT import the workflow yet — we need the Sheet and Drive IDs first.
 
 ═══════════════════════════════════════════════════
 TASK 3 · GOOGLE SHEET (config storage)
 ═══════════════════════════════════════════════════
-
-Open https://docs.google.com/spreadsheets/u/0/create in a new tab.
-
-Rename the spreadsheet to: BSW Discovery Engine
-
-Create three tabs by right-clicking the bottom tab area · Add Sheet:
-  Tab 1: ICP
-  Tab 2: Sent
-  Tab 3: Runs
-
-Tab 1 (ICP) · Row 1 headers:
-  A1: icp_description
-  B1: signal_keywords
-
-Tab 1 (ICP) · Row 2 content (paste exactly):
-  A2: Early-stage SaaS founders pre-PMF or just-past-PMF · technical-leaning · running outbound or research themselves · paying for Lindy/Zapier/Clay or hiring SDRs · usually Boulder/Denver/Bay Area but geography is not a hard filter
-  B2: n8n cost,Lindy credits surprise,hired SDR,replaced our outbound team,Sonnet 4.6 cost,Apollo.io alternative,Smartlead vs Instantly,Clay too expensive,founder-led sales,prospecting for hours,Anthropic bill,running out of credits,n8n self-host,Make.com pricing,LangGraph too complex,agent that drafts emails
-
-Tab 2 (Sent) · Row 1 headers:
-  A1: date
-  B1: person
-  C1: signal_type
-  D1: source_url
-  E1: score
-  F1: draft_subject
-  G1: status
-
-(Tab 2 stays empty under headers · agent will append rows.)
-
-Tab 3 (Runs) · Row 1 headers:
-  A1: date
-  B1: leads_found
-  C1: qualified
-  D1: drafts
-  E1: errors
-  F1: notes
-
-(Tab 3 stays empty under headers · agent will append rows.)
-
-Once done, copy the spreadsheet ID from the URL (the long string between /d/ and /edit) into the temp credentials tab.
+1. Open https://docs.google.com/spreadsheets/u/0/create in a new tab.
+2. Rename to: BSW Discovery Engine
+3. Create three tabs (right-click bottom tab area → Add Sheet). Name them exactly: ICP, Sent, Runs.
+4. ICP tab Row 1 headers (cells A1, B1, C1):
+     icp_description     signal_keywords     subreddits
+5. ICP tab Row 2 — copy the contents of /home/sophia-stein/bsw/handouts/sheet-tab-icp.csv into A2, B2, C2 (open the file, copy each cell value).
+6. Sent tab Row 1 headers (A1–G1):
+     date  person  signal_type  source_url  score  draft_subject  status
+7. Runs tab Row 1 headers (A1–F1):
+     date  leads_found  qualified  drafts  errors  notes
+8. Sent and Runs stay empty under headers — the agent will append rows.
+9. Copy the spreadsheet ID from the URL (the long string between /d/ and /edit) to the credentials tab.
 
 ═══════════════════════════════════════════════════
 TASK 4 · GOOGLE DRIVE FOLDER + voice.md
 ═══════════════════════════════════════════════════
-
-Open https://drive.google.com in a new tab.
-- Create a new folder called "agentic-architect" (root of My Drive).
-- Inside that folder, create a new Google Doc called "voice.md"
-- Open the local file at /home/sophia-stein/bsw/handouts/voice-md-template.md and copy its entire contents into the voice.md Google Doc you just created.
-- Right-click voice.md → Share → Get link → copy. Extract the file ID (between /d/ and /view) and add to the temp credentials tab.
+1. Open https://drive.google.com in a new tab.
+2. Create a folder called "agentic-architect" in My Drive root.
+3. Inside it, create a Google Doc named "voice.md".
+4. Copy the entire contents of /home/sophia-stein/bsw/handouts/voice-md-template.md into the Doc.
+5. Right-click voice.md → Share → Get link → copy. Extract the file ID (between /d/ and /view) and add to the credentials tab.
 
 ═══════════════════════════════════════════════════
-TASK 5 · GOOGLE DRIVE icp.md
+TASK 5 · IMPORT n8n WORKFLOW
 ═══════════════════════════════════════════════════
+1. Return to the n8n.cloud tab.
+2. Workflows → Add → Import from File.
+3. Upload: /home/sophia-stein/bsw/n8n/bsw-growth-agent-lite.json
+4. After import, click each node with a placeholder credential and connect:
+   - "Groq API · Authorization Bearer" → New HTTP Header Auth credential. Header name: Authorization. Header value: Bearer <GROQ_API_KEY>
+   - "Google Sheets account" → New OAuth2 credential. Sign in with the founder's Google account. Pause for the human to click Allow.
+   - "Google Drive account" → New OAuth2 credential. Pause for human Allow.
+   - "Gmail account" → New OAuth2 credential. Pause for human Allow.
+5. Replace placeholder IDs in the workflow:
+   - REPLACE_WITH_YOUR_SHEET_ID → use GOOGLE_SHEET_ID (4 nodes)
+   - REPLACE_WITH_VOICE_MD_FILE_ID → use VOICE_MD_FILE_ID (1 node)
+   - REPLACE_WITH_YOUR_EMAIL@example.com → the founder's email (1 node, the digest recipient)
 
-In the same agentic-architect/ folder, create another Google Doc called "icp.md"
-- Open the local file at /home/sophia-stein/bsw/handouts/icp-md-template.md and copy its entire contents into the icp.md Google Doc.
-- Copy the file ID and add to the temp credentials tab.
+═══════════════════════════════════════════════════
+TASK 6 · TEST RUN
+═══════════════════════════════════════════════════
+1. In n8n, click the Manual · Webhook node, then "Test workflow" (or trigger via the webhook URL).
+2. Watch each node turn green. If any turns red, STOP and report the verbatim error.
+3. After the run, verify:
+   - Gmail Drafts folder has ~5 new drafts
+   - Sheet's Sent tab has ~5 new rows
+   - Sheet's Runs tab has 1 new row
+   - The founder received 1 digest email
+
+═══════════════════════════════════════════════════
+TASK 7 · HANDOFF
+═══════════════════════════════════════════════════
+Summarize in chat:
+1. Confirmation that drafts appeared in Gmail (with one example subject line)
+2. Total elapsed time
+3. Any errors encountered and how they were resolved (if at all)
+4. The credentials tab URL so the human can verify nothing leaked
+
+Then close all tabs except n8n and Gmail Drafts. Leave those open.
+
+=== AUTOPILOT PROMPT · FREE TIER · END ===
+```
+
+---
+
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## PATH B · PAID TIER (Anthropic + Firecrawl)
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Workflow file: `n8n/bsw-growth-agent.json`. Uses Anthropic Claude (Haiku 4.5 + Sonnet 4.6 with prompt caching) + built-in `web_search` tool + Firecrawl. Cost: ~$0.21 per run = ~$6/month at default frequency. Voice match is noticeably better than the free tier.
+
+### Paid-path autopilot prompt
+
+```
+=== AUTOPILOT PROMPT · PAID TIER · BEGIN ===
+
+You are setting up the BSW Growth Agent (PAID tier) for a founder. Stack: n8n.cloud + Anthropic Claude + Firecrawl + Google Sheets/Drive/Gmail.
+
+GUARDRAILS — read and follow exactly:
+1. Do NOT write Google Apps Script. We use n8n.
+2. Do NOT substitute alternative providers (no Groq, no OpenAI, no Make.com).
+3. Pause for human approval at every OAuth consent, payment form, and 2FA step.
+4. If any step fails, STOP and report the verbatim error.
+
+CREDENTIAL HANDLING — write to a single tab titled "BSW credentials":
+
+  ANTHROPIC_API_KEY=sk-ant-...
+  FIRECRAWL_API_KEY=fc-...
+  N8N_INSTANCE_URL=https://...n8n.cloud
+  GOOGLE_SHEET_ID=1AbC...XyZ
+  VOICE_MD_FILE_ID=...
+
+═══════════════════════════════════════════════════
+TASK 1 · ANTHROPIC API KEY
+═══════════════════════════════════════════════════
+1. Open https://console.anthropic.com.
+2. Sign in with the founder's Google account.
+3. Settings → API Keys → Create Key. Name it "bsw-growth-agent".
+4. Copy the key (starts with "sk-ant-") to the credentials tab.
+5. Settings → Billing → confirm at least $20 of credit. If none, STOP and ask the human to add credit.
+
+═══════════════════════════════════════════════════
+TASK 2 · FIRECRAWL API KEY
+═══════════════════════════════════════════════════
+1. Open https://firecrawl.dev.
+2. Sign in (Google SSO works).
+3. Dashboard → API Keys → copy the key (starts with "fc-") to the credentials tab.
+4. Free tier gives 500 credits — plenty for evaluation.
+
+═══════════════════════════════════════════════════
+TASK 3 · n8n.CLOUD
+═══════════════════════════════════════════════════
+1. https://n8n.cloud → start 14-day trial (no card).
+2. Note the URL to credentials tab. Do NOT import yet.
+
+═══════════════════════════════════════════════════
+TASK 4 · GOOGLE SHEET
+═══════════════════════════════════════════════════
+Same as Free Path Task 3. Three tabs (ICP, Sent, Runs) with the headers from sheet-tab-icp.csv / sheet-tab-sent.csv / sheet-tab-runs.csv. Save the Sheet ID.
+
+═══════════════════════════════════════════════════
+TASK 5 · GOOGLE DRIVE + voice.md
+═══════════════════════════════════════════════════
+Same as Free Path Task 4. Save the voice.md file ID.
 
 ═══════════════════════════════════════════════════
 TASK 6 · IMPORT n8n WORKFLOW
 ═══════════════════════════════════════════════════
-
-Return to your n8n.cloud tab.
-- Click Workflows → Add → Import from File.
-- Upload /home/sophia-stein/bsw/n8n/bsw-growth-agent-lite.json (the FREE-tier version using Groq + Jina).
-- After import, click into each node and replace placeholder credentials:
-  - REPLACE_GROQ_HEADER_AUTH → create new HTTP Header Auth credential, name "Groq API · Authorization Bearer", header name "Authorization", value "Bearer YOUR_GROQ_KEY"
-  - REPLACE_GOOGLE_SHEETS_CRED → click Connect new credential → OAuth2 → sign in with sophia@agenticarchitect.ai · grant Sheets read+write access · pause for me to consent.
-  - REPLACE_GOOGLE_DRIVE_CRED → similar OAuth2 flow for Drive (read-only) · pause for me to consent.
-  - REPLACE_GMAIL_CRED → similar OAuth2 flow for Gmail (compose + send scopes) · pause for me to consent.
-- Replace placeholder IDs in the workflow:
-  - REPLACE_WITH_YOUR_SHEET_ID → use the Sheet ID from temp tab (4 spots in workflow)
-  - REPLACE_WITH_VOICE_MD_FILE_ID → voice.md file ID from temp tab
-  - REPLACE_WITH_YOUR_EMAIL@example.com → sophia@agenticarchitect.ai (digest recipient, 1 spot)
+1. n8n.cloud → Workflows → Add → Import from File.
+2. Upload: /home/sophia-stein/bsw/n8n/bsw-growth-agent.json
+3. Wire credentials:
+   - "Anthropic API · x-api-key" → New HTTP Header Auth. Header name: x-api-key. Value: <ANTHROPIC_API_KEY>
+   - "Firecrawl API · Authorization Bearer" → New HTTP Header Auth. Header name: Authorization. Value: Bearer <FIRECRAWL_API_KEY>
+   - "Google Sheets account" / "Google Drive account" / "Gmail account" → OAuth2, pause for human Allow on each.
+4. Replace placeholder IDs:
+   - REPLACE_WITH_YOUR_SHEET_ID (4 nodes)
+   - REPLACE_WITH_VOICE_MD_FILE_ID (1 node)
+   - REPLACE_WITH_YOUR_EMAIL@example.com (1 node)
 
 ═══════════════════════════════════════════════════
-TASK 7 · TEST RUN
+TASK 7 · TEST RUN + HANDOFF
 ═══════════════════════════════════════════════════
+Same verification as Free path: 5 drafts in Gmail, 5 rows in Sent tab, 1 row in Runs tab, 1 digest email.
 
-In n8n, click the Manual Trigger node → Execute Workflow.
+Report the same handoff summary.
 
-Watch the execution flow through all nodes. Each node should turn green. If any turns red, tell me what error it shows.
-
-After the workflow finishes:
-- Open Gmail in a new tab → check Drafts folder. There should be ~5 fresh drafts.
-- Open the BSW Discovery Engine sheet → Runs tab. Should have 1 new row.
-- Open the same sheet → Sent tab. Should have ~5 new rows.
-
-═══════════════════════════════════════════════════
-TASK 8 · HANDOFF
-═══════════════════════════════════════════════════
-
-When done, give me a summary in chat with:
-1. A confirmation that drafts appeared in Gmail (with one example subject line so I know voice match worked)
-2. The total time elapsed
-3. Any errors you saw and how you handled them
-4. The temp credentials tab URL so I can verify nothing leaked
-
-Then close all tabs except n8n and Gmail Drafts. Leave those open for me.
-
-=== AUTOPILOT PROMPT FOR CLAUDE FOR CHROME · END ===
+=== AUTOPILOT PROMPT · PAID TIER · END ===
 ```
 
 ---
 
-## What you need to be ready to do (when Claude for Chrome pauses)
+## What you (the human) will do during the autopilot run
 
 | Pause type | What you do | Time |
 |---|---|---|
-| Google sign-in | Enter your Google password + 2FA code | 30 sec |
-| Groq sign-up confirmation | Click "I agree" on Terms of Service | 5 sec |
-| n8n.cloud sign-up | Click "Start Free Trial" + accept TOS | 10 sec |
-| Google OAuth consent (3 times: Sheets, Drive, Gmail) | Click "Allow" on the OAuth consent screen | 5 sec each |
-| Groq billing prompt | Should NOT appear · if it does, tell agent to skip | n/a |
+| Google sign-in | Enter password + 2FA | 30 sec |
+| Anthropic billing (paid only) | Click through billing if not pre-funded | 30 sec |
+| Google OAuth consent (Sheets, Drive, Gmail — 3×) | Click Allow | 5 sec each |
+| Verify the credentials tab | Skim that nothing odd is there | 30 sec |
 
-**Total interactive time:** ~2 minutes across the whole 10-minute autopilot run.
+**Total interactive time:** ~2 minutes across the ~10-minute autopilot run.
 
 ---
 
-## After Claude for Chrome finishes · verify everything works
+## After the autopilot finishes · verify locally
 
 ```bash
-# Run the credential smoke test from your terminal
 cd /home/sophia-stein/bsw
-GROQ_API_KEY=gsk_yourkeyhere ./scripts/test-credentials.sh
+
+# Free path:
+GROQ_API_KEY=gsk_yourkey ./scripts/test-credentials.sh
+
+# Paid path:
+ANTHROPIC_API_KEY=sk-ant-... FIRECRAWL_API_KEY=fc-... ./scripts/test-credentials.sh
 ```
 
-Should print four green checkmarks (Anthropic skip is fine if you didn't get an Anthropic key — we're free tier).
-
-Then in n8n, run the **Manual Trigger** once more yourself. You should see:
+Then in n8n, hit the **Manual · Webhook** node → "Test workflow". You should see:
 - ✅ All nodes turn green
-- ✅ 5 drafts in your Gmail Drafts folder
-- ✅ 5 rows added to the `Sent` tab in the spreadsheet
-- ✅ 1 row added to the `Runs` tab
+- ✅ 5 drafts in Gmail Drafts
+- ✅ 5 rows in `Sent` tab
+- ✅ 1 row in `Runs` tab
+- ✅ 1 digest email in your inbox
 
-If any of these are missing, the most common culprit is one of the placeholder IDs not getting replaced. Open the n8n workflow and grep for `REPLACE_` — there should be no results.
+If anything is missing, search the imported workflow for `REPLACE_` — there should be no results. Any remaining placeholder is the most common failure cause.
 
 ---
 
-## Activate the cron for tomorrow morning
+## Activate the cron
 
 Once the manual run works:
 1. Open the workflow in n8n
-2. Click the **Active** toggle (top right)
-3. The agent will fire daily at 7 AM your time
-
-Tomorrow morning before the workshop, check your inbox. If 5 drafts arrived overnight, you're shipped. If not, debug Wednesday morning.
+2. Toggle **Active** (top right)
+3. The agent fires daily at 7am Boulder time (`0 13 * * *` UTC during MDT)
 
 ---
 
-## Backup plan if Claude for Chrome stalls
+## Backup plan if Claude for Chrome gets stuck
 
-If Claude for Chrome gets stuck on a step, you can:
-1. Tell it to skip that step and continue
-2. Do that step manually using the existing `TUTORIAL.md`
-3. Then re-prompt: "Resume from Task X"
-
-The 17-step manual TUTORIAL.md covers everything Claude for Chrome would have done.
+1. Tell it to skip the failing step and continue
+2. Do that step manually using the existing `TUTORIAL.md` (covers everything the autopilot does)
+3. Re-prompt: "Resume from Task X"
 
 ---
 
-## What this saves you
-
-| Without autopilot | With Claude for Chrome |
-|---|---|
-| 30 min interactive setup | ~2 min interactive · ~10 min wall-clock |
-| 10+ context switches | Zero context switches |
-| Easy to miss a step | Agent cross-references against this script |
-| ~$0 cost | ~$0 cost · same credentials used |
-
----
-
-*Autopilot script v1 · for the BSW Growth Agent free-tier path · MIT licensed*
+*Autopilot script v2 · two paths · MIT licensed*
 *— Sophia Stein · agenticarchitect.ai/blog · sophia@agenticarchitect.ai*
-
----
 
 
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION · handouts/voice-md-template.md
+## FILE: handouts/voice-md-template.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Sophia's voice — for outbound writing
@@ -1758,11 +1832,9 @@ The agent learns voice from these. **Five minimum. More is better.** Add new one
 
 *Voice file by Sophia Stein · sophia@agenticarchitect.ai · agenticarchitect.ai/blog · MIT licensed*
 
----
-
 
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION · handouts/icp-md-template.md
+## FILE: handouts/icp-md-template.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # ICP — Ideal Customer Profile
@@ -1838,11 +1910,9 @@ See `do-not-contact.csv` in the same Drive folder. Updated continuously. Include
 
 *ICP file by Sophia Stein · agenticarchitect.ai/blog · last updated 2026-05-04*
 
----
-
 
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION · handouts/schemas-md-template.md
+## FILE: handouts/schemas-md-template.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Agent Schemas — JSON output shapes
@@ -1976,11 +2046,9 @@ This is your trust-building primitive. After 14 consecutive runs with high appro
 
 *Schemas file · part of github.com/sudosoph/bsw26-agentic-workflows · MIT licensed*
 
----
-
 
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION · handouts/20-80-worksheet.md
+## FILE: handouts/20-80-worksheet.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # The 20/80 Worksheet
@@ -2120,11 +2188,9 @@ ________________________________________________________________
 
 *Worksheet by Sophia Stein · MIT licensed · feel free to fork & adapt*
 
----
-
 
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION · handouts/oss-growth-playbook.md
+## FILE: handouts/oss-growth-playbook.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # The OSS Growth Playbook
@@ -2230,11 +2296,9 @@ The Discovery Engine you got from this workshop is option C, ready-made. Fork it
 
 *Take it. Build it. Ship it. — Sophia Stein · agenticarchitect.ai/blog*
 
----
-
 
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## SECTION · resources-landing.md
+## FILE: resources-landing.md
 ## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Welcome — you were at the BSW workshop.
@@ -2366,6 +2430,4 @@ Boulder-based. Available for short consults.
 
 *Resources page · part of github.com/sudosoph/bsw26-agentic-workflows · MIT licensed*
 *— Sophia Stein · AI Architect*
-
----
 
