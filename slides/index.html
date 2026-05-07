@@ -439,6 +439,42 @@ section.end .signoff strong { color: var(--text); }
 .diagram .wn  { color: var(--warn); font-weight: 600; }
 .diagram .mu  { color: var(--text-4); }
 
+/* ----- Architecture flow · vertical stack of step cards · used on slide 19 ----- */
+.arch-flow { display: flex; flex-direction: column; gap: 0; padding: 4px 0; }
+.arch-step {
+  display: grid;
+  grid-template-columns: 156px 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 5px 0;
+}
+.arch-step .badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  padding: 7px 10px;
+  border-radius: 5px;
+  text-align: center;
+  white-space: nowrap;
+}
+.arch-step .badge.trigger { background: var(--accent-soft); color: var(--accent); }
+.arch-step .badge.read    { background: var(--surface-2); color: var(--text-2); }
+.arch-step .badge.ai      { background: var(--good-soft); color: var(--good); }
+.arch-step .badge.hitl    { background: var(--warn-soft); color: var(--warn); }
+.arch-step .badge.log     { background: var(--surface); color: var(--text-3); }
+.arch-step .desc { font-size: 14.5px; color: var(--text-2); line-height: 1.4; }
+.arch-step .desc em      { font-style: normal; color: var(--text-4); font-size: 13px; }
+.arch-step .desc strong  { color: var(--text); font-weight: 600; }
+.arch-step .desc .hot    { color: var(--warn); font-weight: 700; }
+.arch-arrow {
+  font-size: 12px;
+  color: var(--text-4);
+  padding-left: 75px;
+  line-height: 1;
+  margin: -2px 0;
+}
+
 /* ----- Callouts ----- */
 .callout {
   background: var(--accent-soft);
@@ -956,28 +992,55 @@ section.end .signoff strong { color: var(--text); }
 <!-- 19 — ARCHITECTURE -->
 <section>
   <div class="eyebrow"><span class="dot"></span>Build · The architecture · the centerpiece</div>
-  <h2>Six nodes · three sub-agents · one workflow.</h2>
-  <div class="body">
-    <div class="diagram" style="font-size:12.5px;">
-<span class="lbl">TRIGGER</span>     cron 7am · manual webhook
-   ↓
-<span class="lbl">READ</span>        Sheets("ICP") + Drive("voice.md")  <span class="mu">// config-as-files</span>
-   ↓
-<span class="lbl">DISCOVERY + EXTRACT</span> · sub-agent #1 · <span class="ok">Haiku 4.5 + web_search</span>
-   ↓ <span class="mu">[{ person, signal_type, source_url, evidence_quote, score }]</span>
-<span class="lbl">DEDUPE</span>      against Sheets("Sent") · <span class="mu">idempotency = re-run safety</span>
-   ↓
-<span class="lbl">ENRICH</span>      Firecrawl on top-N · <span class="ok">Haiku</span> 2-line summary
-   ↓
-<span class="lbl">DRAFT</span> · sub-agent #2 · <span class="ok">Sonnet 4.6 + voice.md + 5 examples</span>
-   ↓
-<span class="wn">HITL GATE   Gmail.createDraft  ·  NEVER sends</span>
-   ↓
-<span class="lbl">DIGEST</span> · sub-agent #3 · <span class="ok">Sonnet</span> · daily 7:30am
-   ↓
-<span class="lbl">LOG</span>         Sheets("Runs") · audit + cost meter
+  <h2>Nine steps · three sub-agents · one workflow.</h2>
+  <div class="body top">
+    <div class="arch-flow">
+      <div class="arch-step">
+        <div class="badge trigger">1 · TRIGGER</div>
+        <div class="desc">Cron daily 7am · Manual webhook for the live demo</div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-step">
+        <div class="badge read">2 · READ</div>
+        <div class="desc">Sheets <code>ICP</code> + Drive <code>voice.md</code> &nbsp;·&nbsp; <em>config-as-files pattern</em></div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-step">
+        <div class="badge ai">3 · DISCOVERY</div>
+        <div class="desc"><strong>Haiku 4.5 + web_search</strong> · sub-agent #1 · returns typed JSON <em>[{ person, signal_type, score, … }]</em></div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-step">
+        <div class="badge read">4 · DEDUP</div>
+        <div class="desc">vs Sheets <code>Sent</code> log &nbsp;·&nbsp; <em>idempotency = re-run safety</em></div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-step">
+        <div class="badge ai">5 · ENRICH</div>
+        <div class="desc"><strong>Firecrawl</strong> on top 5 only &nbsp;·&nbsp; <strong>Haiku</strong> writes a 2-line company summary</div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-step">
+        <div class="badge ai">6 · DRAFT</div>
+        <div class="desc"><strong>Sonnet 4.6 + voice.md</strong> · sub-agent #2 · the only premium-token step in the workflow</div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-step">
+        <div class="badge hitl">7 · HITL GATE</div>
+        <div class="desc"><strong>Gmail.createDraft</strong> &nbsp;·&nbsp; <span class="hot">NEVER sends</span> &nbsp;·&nbsp; you approve, you send</div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-step">
+        <div class="badge ai">8 · DIGEST</div>
+        <div class="desc"><strong>Sonnet</strong> · sub-agent #3 · daily 7:30am summary email to you</div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-step">
+        <div class="badge log">9 · LOG</div>
+        <div class="desc">Append to Sheets <code>Runs</code> &nbsp;·&nbsp; <em>audit + cost meter</em></div>
+      </div>
     </div>
-    <p class="kicker">Three Claude prompts. Each gets only the context it needs. None see the whole conversation. <strong>Sub-agent decomposition for cost.</strong></p>
+    <p class="kicker"><strong>Three sub-agents · each gets only the context it needs. None see the whole conversation.</strong> Sub-agent decomposition is how you cut cost without losing quality.</p>
   </div>
   <div class="footer"><span class="tag">durability</span><span class="cite">github.com/sudosoph/bsw26-agentic-workflows · MIT</span></div>
 </section>

@@ -438,27 +438,27 @@ Switch to Gmail Drafts:
 **Stage:** Walk every line.
 
 **Say:**
-> "Six nodes. Three sub-agents. One workflow."
+> "Nine steps. Three sub-agents. One workflow. Top to bottom."
 
-> "Trigger — cron 7am or manual webhook. We have both. Cron for daily, manual for testing on stage."
+> "**Step one — trigger.** Cron 7am or manual webhook. We have both. Cron for daily, manual for testing on stage."
 
-> "Read — the agent reads the ICP file from Sheets and the voice.md file from Drive. Both files. Notice this pattern. We'll come back to it three times today — it's called config-as-files, and it's the most important pattern in this whole architecture."
+> "**Step two — read.** The agent reads the ICP from a Sheet, and a file called voice.md from Drive. Both files. We'll come back to this pattern three times — it's called config-as-files, and it's the single most important pattern in this whole architecture."
 
-> "Discovery and extract — sub-agent number one. Haiku 4.5 with the web_search tool enabled. One Claude call does both the search and the structured extraction. Returns typed JSON."
+> "**Step three — discovery.** Sub-agent number one. Haiku 4.5 with the web_search tool enabled. One Claude call does both the search and the structured extraction. Returns typed JSON: person, signal type, source URL, evidence quote, score."
 
-> "Dedup — against the Sheets sent log. Idempotency. Re-run safety. We'll cover why this matters."
+> "**Step four — dedup.** Against the Sent log in our Sheet. Idempotency. Re-run safety. So if the workflow fires twice in one morning, we don't email the same person twice."
 
-> "Enrich — Firecrawl scrapes the company websites for the top five candidates only. Then Haiku writes a two-line summary."
+> "**Step five — enrich.** Only the top five candidates by score get Firecrawl'd. The other twenty-five we don't even bother researching. Then Haiku writes a two-line company summary. Cheap-fast first, expensive-deep second."
 
-> "Draft — sub-agent number two. Sonnet 4.6 plus voice.md plus five example emails. The only premium-token step in the whole workflow."
+> "**Step six — draft.** Sub-agent number two. Sonnet 4.6 plus voice.md plus five example emails. The only premium-token step in the whole workflow."
 
-> "HITL gate — Gmail.createDraft. Never sends. The most important node."
+> "**Step seven — HITL gate.** Gmail.createDraft. Never sends. This is the most important node in the entire architecture. The agent does the research and the writing. You do the judgment and the sending."
 
-> "Digest — sub-agent number three. Sonnet, batch-eligible. Daily summary."
+> "**Step eight — digest.** Sub-agent number three. Sonnet writes a one-paragraph summary email to you. Daily, 7:30am."
 
-> "Log — Sheets Runs. Audit and cost meter."
+> "**Step nine — log.** Append a row to the Runs sheet. Audit and cost meter. Every run, every count."
 
-> "Three Claude prompts in total. Each one only sees the context it needs. None see the whole conversation. This is sub-agent decomposition for cost — we'll cover the math in part four."
+> "Three Claude prompts in total. Each one only sees the context it needs. None see the whole conversation. This is sub-agent decomposition for cost — we'll cover the math in part five."
 
 **Define:**
 - "Sub-agent" — a separate prompt and model invocation within a single workflow. Each sub-agent gets only the context it needs. Different from "multi-agent" which means agents talking to other agents — that's out of scope today.
